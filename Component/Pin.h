@@ -22,14 +22,14 @@ class Pin : public Point
     Block *mConnect;
 };
 
-inline Pin( Block* const connect = nullptr ) : mConnect( connect ) {}
-inline Pin( Block* const connect , double x , double y )
+inline Pin::Pin( Block* const connect ) : mConnect( connect ) {}
+inline Pin::Pin( Block* const connect , double x , double y )
   : Point( x , y ) , mConnect( connect ) {}
-inline Pin( Block* const connect , const Point &p )
+inline Pin::Pin( Block* const connect , const Point &p )
   : Point( p ) , mConnect( connect ) {}
 
-inline Block* const connect() { return mConnect; }
+inline Block* const Pin::connect() const { return mConnect; }
 
-inline void setConnect( Block* const connect ) { mConnect = connect; }
+inline void Pin::setConnect( Block* const connect ) { mConnect = connect; }
 
 #endif

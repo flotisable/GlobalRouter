@@ -7,6 +7,7 @@ using std::vector;
 using std::string;
 
 #include "../Graphic/Point.h"
+#include "Pin.h"
 
 class Net
 {
@@ -15,10 +16,10 @@ class Net
     Net( const string &name );
     Net( const string &name , int currentDensity );
 
-    const string&  name          () const;
-    const int      currentDensity() const;
-    vector<Point>& connect       ();
-    vector<Point>& path          ();
+    const string&   name          () const;
+    const int       currentDensity() const;
+    vector<Pin>&    pin           ();
+    vector<Point>&  path          ();
 
     void setName          ( const string &name );
     void setCurrentDensity( int );
@@ -28,7 +29,7 @@ class Net
     string mName;
     int    mCurrentDensity;
 
-    vector<Point> mConnect;
+    vector<Pin>   mPin;
     vector<Point> mPath;
 };
 

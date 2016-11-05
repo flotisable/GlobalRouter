@@ -6,13 +6,15 @@
 using std::vector;
 using std::string;
 
+#include "Graphic/Rectangle.h"
 #include "Component/Net.h"
 #include "Component/Block.h"
+#include "Component/Group.h"
 #include "MazeRouter.h"
 
 using RoutingEngine = MazeRouter;
 
-class Router
+class Router : public Rectangle
 {
   public:
 
@@ -22,7 +24,7 @@ class Router
 
     inline void setRouter( RoutingEngine* const router );
 
-    bool readBlock( const string &fileName );
+    bool readBlock( const string &fileName , const string &groupFileName );
     bool readNets ( const string &fileName );
     bool route    ();
     
@@ -30,11 +32,14 @@ class Router
 
   private:
 
+    bool readGroup( const string &fileName );
+
     RoutingEngine *mRouter;
 
     vector<double>  mHsplit;
     vector<double>  mVsplit;
     vector<Net>     nets;
+    vector<Group>   groups;
     vector<Block>   blocks;
 };
 

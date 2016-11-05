@@ -24,7 +24,7 @@ class Rectangle
     inline void setCenterY   ( double      y       );
     inline void setWidth     ( double      w       );
     inline void setHeight    ( double      h       );
-    inline void setLeftButtom( double x , double y );
+    inline void setLeftBottom( double x , double y );
 
     inline double area  () const;
     inline double top   () const;
@@ -62,7 +62,7 @@ inline void Rectangle::setCenterX   ( double      x       ) { mCenter.setX( x );
 inline void Rectangle::setCenterY   ( double      y       ) { mCenter.setY( y ); }
 inline void Rectangle::setWidth     ( double      w       ) { mWidth   = w; }
 inline void Rectangle::setHeight    ( double      h       ) { mHeight  = h; }
-inline void Rectangle::setLeftButtom( double x , double y )
+inline void Rectangle::setLeftBottom( double x , double y )
 { mCenter.set( x + mWidth / 2 , y + mHeight / 2 ); }
 
 inline double Rectangle::area  () const { return mWidth       * mHeight;     }

@@ -27,10 +27,12 @@ class Block : public Rectangle
 
 std::ostream& operator<<( std::ostream &out , const Block &block );
 
-inline Block::Block( const string &name ) : mName( name ) {}
-inline Block::Block( const string &name , double centerX , double centerY , double h , double w )
+inline Block::Block(  const string &name ) : mName( name ) {}
+inline Block::Block(  const string &name , double centerX , double centerY ,
+                      double h , double w )
   : Rectangle( centerX , centerY , h ,w ) , mName( name ) {}
-inline Block::Block( const string &name , const Point &center             , double h , double w )
+inline Block::Block(  const string &name , const Point &center ,
+                      double h , double w )
   : Rectangle( center , h , w ) , mName( name ) {}
 
 inline const string& Block::name() const { return mName; }

@@ -7,7 +7,7 @@ int main()
 {
   Router router;
   
-  router.readBlock( "display_info/display0.txt" );
+  router.readBlock( "display_info/display0.txt" , "two_stage_fullnets/test.constraints" );
   router.outputData( "routingReport.txt" );
 
   cin.get();
