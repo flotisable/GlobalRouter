@@ -1,6 +1,8 @@
 #ifndef PIN_H
 #define PIN_H
 
+#include <ostream>
+
 #include "../Graphic/Point.h"
 
 class Block;
@@ -21,6 +23,8 @@ class Pin : public Point
   
     Block *mConnect;
 };
+
+std::ostream& operator<<( std::ostream &out , const Pin &pin );
 
 inline Pin::Pin( Block* const connect ) : mConnect( connect ) {}
 inline Pin::Pin( Block* const connect , double x , double y )

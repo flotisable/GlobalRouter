@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <ostream>
 using std::vector;
 using std::string;
 
@@ -13,24 +14,40 @@ class Net
 {
   public:
 
-    Net( const string &name );
-    Net( const string &name , int currentDensity );
+    inline Net( const string &name = string() );
+    inline Net( const string &name , int currentDensity );
 
-    const string&   name          () const;
-    const int       currentDensity() const;
-    vector<Pin>&    pin           ();
-    vector<Point>&  path          ();
+    inline const string&   name          () const;
+    inline const int       currentDensity() const;
+    inline vector<Pin>&    pins          ();
+    inline vector<Point>&  path          ();
 
-    void setName          ( const string &name );
-    void setCurrentDensity( int );
+    inline void setName          ( const string &name           );
+    inline void setCurrentDensity( int          currentDensity  );
 
   private:
 
     string mName;
     int    mCurrentDensity;
 
-    vector<Pin>   mPin;
+    vector<Pin>   mPins;
     vector<Point> mPath;
 };
+
+std::ostream& operator<<( std::ostream &out , Net &net );
+
+inline Net::Net( const string &name ) : mName( name ) {}
+inline Net::Net( const string &name , int currentDensity )
+  : mName( name ) , mCurrentDensity( currentDensity ) {}
+
+inline const string&   Net::name          () const  { return mName;           }
+inline const int       Net::currentDensity() const  { return mCurrentDensity; }
+inline vector<Pin>&    Net::pins          ()        { return mPins;           }
+inline vector<Point>&  Net::path          ()        { return mPath;           }
+
+inline void Net::setName          ( const string  &name )
+{ mName = name; }
+inline void Net::setCurrentDensity( int           currentDensity )
+{ mCurrentDensity = currentDensity; }
 
 #endif

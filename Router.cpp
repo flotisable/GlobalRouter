@@ -50,7 +50,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
         setup LeftButtom
       */
       
-      if( name == "ALL" )
+      if( name == "ALL" ) // 設定邊界 setup boudary
       {
         setHeight     ( height * unit );
         setWidth      ( width * unit );
@@ -78,22 +78,19 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
         {
            for( Symmetry &symmetry : group.symmetrys() )
            {
-              auto it = find_if(  symmetry.blocks().begin() , symmetry.blocks().end() ,
-                                  [&]( const Block &b )
-                                  { return b.name() == block.name(); } );
+              Block* const blockPtr = getBlock( symmetry.blocks() , block.name() );
 
-              if( it != symmetry.blocks().end() )
+              if( blockPtr )
               {
-                *it = block;
+                *blockPtr = block;
                 goto match;
               }
            }
-           auto it = find_if( group.blocks().begin() , group.blocks().end() ,
-                              [&]( const Block &b ) { return b.name() == block.name(); } );
+           Block* const blockPtr = getBlock( group.blocks() , block.name() );
 
-           if( it != group.blocks().end() )
+           if( blockPtr )
            {
-             *it = block;
+             *blockPtr = block;
              goto match;
            }
         }
@@ -111,7 +108,8 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
     while( file.get() != '\n' )
       if( file.eof() ) break;
   }
-  
+
+  // 排序並刪去重複項 sort and remove repeat points
   sort( mHsplit.begin() , mHsplit.end() );
   sort( mVsplit.begin() , mVsplit.end() );
   
@@ -124,12 +122,77 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
   
   mVsplit.resize( distance( mVsplit.begin() , it ) );
   mVsplit.shrink_to_fit();
+  // end 排序並刪去重複項 sort and remove repeat points
   
   return true;
 }
 
 bool Router::readNets( const string &fileName )
 {
+  constexpr double unit = 0.01;
+
+  ifstream  file( fileName );
+  string    word;
+  
+  while( !file.eof() )
+  {
+    file >> word;
+    
+    if( word == "NetDegree" )
+    {
+      Net net;
+      int currentDensity;
+      int pinNum;
+      
+      file >> word >> pinNum >> word >> currentDensity;
+      net.setName           ( word );
+      net.setCurrentDensity ( currentDensity );
+      
+      for( int i = 0 ; i < pinNum ; i++ )
+      {
+         Pin    pin;
+         string blockName;
+         double x;
+         double y;
+
+         file >> blockName >> word >> word >> x >> y;
+         
+         pin.set( x * unit , y * unit );
+         
+         for( Group &group : groups )
+         {
+            for( Symmetry &symmetry : group.symmetrys() )
+            {
+               Block* const block = getBlock( symmetry.blocks() , blockName );
+
+               if( block )
+               {
+                 pin.setConnect( block );
+                 goto match;
+               }
+            }
+            
+            Block* const block = getBlock( group.blocks() , blockName );
+
+            if( block )
+            {
+              pin.setConnect( block );
+              goto match;
+            }
+         }
+         match:
+
+         Block* const block = getBlock( blocks , blockName );
+
+         if( block ) pin.setConnect( block );
+         
+         net.pins().push_back( pin );
+      }
+      
+      nets.push_back( net );
+    }
+  }
+
   return true;
 }
 
@@ -161,7 +224,7 @@ void Router::outputData( const string &fileName )
   file << endl;
   
   file << "[ Nets ]\n";
-  for( const Net &net : nets );
+  for( Net &net : nets ) file << net << endl;
   file << endl;
 }
 
@@ -221,4 +284,12 @@ bool Router::readGroup( const string &fileName )
   }
 
   return true;
+}
+
+Block* const Router::getBlock( const vector<Block> &blocks , const string &name )
+{
+  auto it = find_if(  blocks.begin() , blocks.end() ,
+                      [&]( const Block &block ) { return block.name() == name; } );
+
+  return ( it != blocks.end() ) ? const_cast<Block* const>( &( *it ) ) : nullptr;
 }

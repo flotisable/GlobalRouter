@@ -33,6 +33,8 @@ class Router : public Rectangle
   private:
 
     bool readGroup( const string &fileName );
+    
+    Block* const getBlock( const vector<Block> &blocks , const string &name );
 
     RoutingEngine *mRouter;
 
