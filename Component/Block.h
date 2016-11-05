@@ -2,10 +2,11 @@
 #define BLOCK_H
 
 #include <string>
+#include <ostream>
 using std::string;
 
-#include "Graphic/Point.h"
-#include "Graphic/Rectangle.h"
+#include "../Graphic/Point.h"
+#include "../Graphic/Rectangle.h"
 
 class Block : public Rectangle
 {
@@ -15,7 +16,7 @@ class Block : public Rectangle
     inline Block( const string &name , double centerX , double centerY , double h , double w );
     inline Block( const string &name , const Point &center             , double h , double w );
     
-    inline const string& name();
+    inline const string& name() const;
     
     inline void setName( const string &name );
     
@@ -24,14 +25,16 @@ class Block : public Rectangle
     string mName;
 };
 
-inline Block( const string &name = string() ) : mName( name ) {}
-inline Block( const string &name , double centerX , double centerY , double h , double w )
+std::ostream& operator<<( std::ostream &out , const Block &block );
+
+inline Block::Block( const string &name ) : mName( name ) {}
+inline Block::Block( const string &name , double centerX , double centerY , double h , double w )
   : Rectangle( centerX , centerY , h ,w ) , mName( name ) {}
-inline Block( const string &name , const Point &center             , double h , double w )
+inline Block::Block( const string &name , const Point &center             , double h , double w )
   : Rectangle( center , h , w ) , mName( name ) {}
 
-inline const string& name() { return mName; }
+inline const string& Block::name() const { return mName; }
 
-inline void setName( const string &name ) { mName = name; }
+inline void Block::setName( const string &name ) { mName = name; }
 
 #endif

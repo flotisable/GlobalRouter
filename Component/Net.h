@@ -6,18 +6,19 @@
 using std::vector;
 using std::string;
 
-#include "Graphic/Point.h"
+#include "../Graphic/Point.h"
 
 class Net
 {
   public:
 
-    Net( const string &name = string() , int currentDensity );
+    Net( const string &name );
+    Net( const string &name , int currentDensity );
 
     const string&  name          () const;
     const int      currentDensity() const;
     vector<Point>& connect       ();
-    vector<Point>& mPath         ();
+    vector<Point>& path          ();
 
     void setName          ( const string &name );
     void setCurrentDensity( int );

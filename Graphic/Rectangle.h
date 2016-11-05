@@ -54,7 +54,7 @@ inline Rectangle::Rectangle( const Point &center , double h , double w )
 inline const Point& Rectangle::center    () const { return mCenter; }
 inline double       Rectangle::width     () const { return mWidth; }
 inline double       Rectangle::height    () const { return mHeight; }
-inline Point        Rectangle::leftButtom() const { return Point( left() , buttom() );  }
+inline Point        Rectangle::leftButtom() const { return Point( left() , bottom() );  }
 
 inline void Rectangle::setCenter    ( double x , double y ) { mCenter  = Point( x , y ); }
 inline void Rectangle::setCenter    ( const Point &p      ) { mCenter  = p; }
@@ -63,7 +63,7 @@ inline void Rectangle::setCenterY   ( double      y       ) { mCenter.setY( y );
 inline void Rectangle::setWidth     ( double      w       ) { mWidth   = w; }
 inline void Rectangle::setHeight    ( double      h       ) { mHeight  = h; }
 inline void Rectangle::setLeftButtom( double x , double y )
-{ mCenter.setX( x + mWidth / 2 , y + mHeight / 2 ); }
+{ mCenter.set( x + mWidth / 2 , y + mHeight / 2 ); }
 
 inline double Rectangle::area  () const { return mWidth       * mHeight;     }
 inline double Rectangle::top   () const { return mCenter.y()  + mHeight / 2; }

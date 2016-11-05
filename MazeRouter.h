@@ -5,8 +5,8 @@
 using std::vector;
 
 #include "Graphic/Point.h"
-#include "Net.h"
-#include "Grid.h"
+#include "Component/Net.h"
+#include "Component/Grid.h"
 
 class MazeRouter
 {
@@ -26,9 +26,9 @@ class MazeRouter
     void findPath ();
     void backTrace();
 
-    vector<vector<Grid>> mGrids;
-    vector<Point>        mPins;
-    vector<Point>        mPath;
+    vector<vector<Grid>>  mGrids;
+    vector<Point>         mPins;
+    vector<Point>         mPath;
 };
 
 #endif

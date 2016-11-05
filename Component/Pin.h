@@ -1,7 +1,7 @@
 #ifndef PIN_H
 #define PIN_H
 
-#include "Point.h"
+#include "../Graphic/Point.h"
 
 class Block;
 
@@ -13,7 +13,7 @@ class Pin : public Point
     inline Pin( Block* const connect , double x , double y );
     inline Pin( Block* const connect , const Point &p );
     
-    inline Block* const connect();
+    inline Block* const connect() const;
     
     inline void setConnect( Block* const connect );
   

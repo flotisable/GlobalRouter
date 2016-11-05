@@ -6,8 +6,8 @@
 using std::vector;
 using std::string;
 
-#include "Net.h"
-#include "Graphic/Rectangle.h"
+#include "Component/Net.h"
+#include "Component/Block.h"
 #include "MazeRouter.h"
 
 using RoutingEngine = MazeRouter;
@@ -18,28 +18,30 @@ class Router
 
     inline Router( RoutingEngine* const router = nullptr );
 
-    inline RoutingEngine* const router();
+    inline RoutingEngine* const router() const;
 
     inline void setRouter( RoutingEngine* const router );
 
     bool readBlock( const string &fileName );
     bool readNets ( const string &fileName );
     bool route    ();
+    
+    void outputData( const string &fileName );
 
   private:
 
     RoutingEngine *mRouter;
 
-    vector<double>    mHsplit;
-    vector<double>    mVsplit;
-    vector<Net>       nets;
-    vector<Rectangle> blocks;
+    vector<double>  mHsplit;
+    vector<double>  mVsplit;
+    vector<Net>     nets;
+    vector<Block>   blocks;
 };
 
-inline Router( RoutingEngine* const router ) : mRouter( router ) {}
+inline Router::Router( RoutingEngine* const router ) : mRouter( router ) {}
 
-inline RoutingEngine* const router() { return mRouter; }
+inline RoutingEngine* const Router::router() const { return mRouter; }
 
-inline void setRouter( RoutingEngine* const router ) { mRouter = router; }
+inline void Router::setRouter( RoutingEngine* const router ) { mRouter = router; }
 
 #endif
