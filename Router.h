@@ -16,13 +16,11 @@ class Router
 {
   public:
 
-    Router( RoutingEngine* const router = nullptr );
+    inline Router( RoutingEngine* const router = nullptr );
 
-    RoutingEngine* const router();
-    vector<double>&      hsplit();
-    vector<double>&      vsplit();
+    inline RoutingEngine* const router();
 
-    void setRouter( RoutingEngine* const router );
+    inline void setRouter( RoutingEngine* const router );
 
     bool readBlock( const string &fileName );
     bool readNets ( const string &fileName );
@@ -37,5 +35,11 @@ class Router
     vector<Net>       nets;
     vector<Rectangle> blocks;
 };
+
+inline Router( RoutingEngine* const router ) : mRouter( router ) {}
+
+inline RoutingEngine* const router() { return mRouter; }
+
+inline void setRouter( RoutingEngine* const router ) { mRouter = router; }
 
 #endif

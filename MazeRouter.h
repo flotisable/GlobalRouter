@@ -6,15 +6,15 @@ using std::vector;
 
 #include "Graphic/Point.h"
 #include "Net.h"
-#include "Block.h"
+#include "Grid.h"
 
 class MazeRouter
 {
   public:
 
-    vector<vector<Block>>& blocks();
-    vector<Point>&         pins  ();
-    vector<Point>&         path  ();
+    vector<vector<Grid>>& grids ();
+    vector<Point>&        pins  ();
+    vector<Point>&        path  ();
 
     void readNet( Net &net );
     void saveNet( Net &net );
@@ -26,9 +26,9 @@ class MazeRouter
     void findPath ();
     void backTrace();
 
-    vector<vector<Block>> mBlocks;
-    vector<Point>         mPins;
-    vector<Point>         mPath;
+    vector<vector<Grid>> mGrids;
+    vector<Point>        mPins;
+    vector<Point>        mPath;
 };
 
 #endif
