@@ -14,13 +14,19 @@ class Group : public Block
 {
   public:
   
-    inline vector<Symmetry>&  symmetrys ();
-    inline vector<Block>&     blocks    ();
-  
+    inline const vector<double>&  hsplit    ();
+    inline const vector<double>&  vsplit    ();
+    inline vector<Symmetry>&      symmetrys ();
+    inline vector<Block>&         blocks    ();
+
     vector<vector<Grid>> gridMap();
+
+    void buildSplit();
   
   private:
-  
+
+    int getIndex( const vector<double> &array , double value );
+
     vector<double>    mHsplit;
     vector<double>    mVsplit;
     vector<Symmetry>  mSymmetrys;
@@ -29,7 +35,9 @@ class Group : public Block
 
 std::ostream& operator<<( std::ostream &out , Group &group );
 
-inline vector<Symmetry>&  Group::symmetrys() { return mSymmetrys; }
-inline vector<Block>&     Group::blocks   () { return mBlocks;    }
+inline const vector<double>&  Group::hsplit   () { return mHsplit;    }
+inline const vector<double>&  Group::vsplit   () { return mVsplit;    }
+inline vector<Symmetry>&      Group::symmetrys() { return mSymmetrys; }
+inline vector<Block>&         Group::blocks   () { return mBlocks;    }
 
 #endif

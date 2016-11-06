@@ -34,7 +34,10 @@ class Router : public Rectangle
 
     bool readGroup( const string &fileName );
     
-    Block* const getBlock( const vector<Block> &blocks , const string &name );
+    Block* const  getBlock( const vector<Block>   &blocks , const string &name );
+    int           getIndex( const vector<double>  &array  , double value );
+    
+    vector<vector<Grid>> gridMap();
 
     RoutingEngine *mRouter;
 

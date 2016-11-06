@@ -55,6 +55,10 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
         setHeight     ( height * unit );
         setWidth      ( width * unit );
         setLeftBottom ( lbX * unit , lbY *unit );
+        mHsplit.push_back( left()   );
+        mHsplit.push_back( right()  );
+        mVsplit.push_back( top()    );
+        mVsplit.push_back( bottom() );
         while( file.get() != '\n' );
         continue;
       }
@@ -216,6 +220,21 @@ void Router::outputData( const string &fileName )
   for( double point : mVsplit ) file << point << endl;
   file << endl;
   
+  file << "Grids :\n";
+  vector<vector<Grid>> grids = gridMap();
+  for( int i = static_cast<int>( grids.size() ) - 1 ; i >=0 ; --i )
+  {
+     for( const Grid &grid : grids[i] )
+        switch( grid.label() )
+        {
+          case Grid::SPACE:     file << "0";  break;
+          case Grid::OBSTACLE:  file << "1";  break;
+          default:                            break;
+        }
+     file << endl;
+  }
+  file << endl;
+  
   file << "[ Groups ]\n";
   for( Group &group : groups ) file << group << endl;
   
@@ -292,4 +311,34 @@ Block* const Router::getBlock( const vector<Block> &blocks , const string &name 
                       [&]( const Block &block ) { return block.name() == name; } );
 
   return ( it != blocks.end() ) ? const_cast<Block* const>( &( *it ) ) : nullptr;
+}
+
+int Router::getIndex( const vector<double> &array , double value )
+{
+  for( int i = 0 ; i < static_cast<int>( array.size() ) ; ++i )
+     if( array[i] == value ) return i;
+  return -1;
+}
+
+vector<vector<Grid>> Router::gridMap()
+{
+  vector<vector<Grid>> grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
+
+  for( const Group &group : groups )
+  {
+     int x = getIndex( mHsplit , group.left  () );
+     int y = getIndex( mVsplit , group.bottom() );
+
+     grids[y][x].setLabel( Grid::OBSTACLE );
+  }
+
+  for( const Block &block : blocks )
+  {
+     int x = getIndex( mHsplit , block.left  () );
+     int y = getIndex( mVsplit , block.bottom() );
+
+     grids[y][x].setLabel( Grid::OBSTACLE );
+  }
+
+  return grids;
 }
