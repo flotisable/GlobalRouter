@@ -202,6 +202,32 @@ bool Router::readNets( const string &fileName )
 
 bool Router::route()
 {
+  for( Group &group : groups )
+  {
+     mRouter->grids = group.gridMap();
+     
+     for( Net &net : nets )
+     {
+        if( !group.netConnected( net ) ) continue;
+
+        mRouter->pins = group.connectedPin( net );
+        mRouter->route();
+        
+        net.path().insert(  net.path().end() ,
+                            mRouter->path().begin() , mRouter->path().end() );
+     }
+  }
+
+  mRouter->grids = gridMap();
+
+  for( Net &net : nets )
+  {
+     mRouter->pins = connectedPin( net );
+     mRouter->route();
+
+     net.path().insert(  net.path().end() , mRouter->path().begin() , mRouter->path().end() );
+  }
+
   return true;
 }
 
@@ -340,5 +366,36 @@ vector<vector<Grid>> Router::gridMap()
      grids[y][x].setLabel( Grid::OBSTACLE );
   }
 
+  for( unsigned int i = 0 ; i < grids.size() ; ++i )
+     for( unsigned int j = 0 ; j < grids[0].size() ; ++j )
+     {
+        grids[i][j].setCostX( mHsplit[j+1] - mHsplit[j] );
+        grids[i][j].setCostY( mVsplit[i+1] - mVsplit[i] );
+     }
+
   return grids;
+}
+
+vector<Point> Router::connectedPin( Net &net )
+{
+  vector<Point> pins;
+
+  for( const Pin &pin : net.pins() )
+  {
+     if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
+          ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
+     {
+       unsigned int x;
+       unsigned int y;
+
+       for( x = 0 ; x < mHsplit.size() ; ++x )
+          if( mHsplit[x] <= pin.x() ) break;
+       for( y = 0 ; y < mVsplit.size() ; ++y )
+          if( mVsplit[y] <= pin.y() ) break;
+
+       pins.push_back( Point( x , y ) );
+     }
+  }
+
+  return pins;
 }

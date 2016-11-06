@@ -9,6 +9,7 @@ using std::vector;
 #include "Net.h"
 #include "Grid.h"
 #include "Symmetry.h"
+#include "Point.h"
 
 class Group : public Block
 {
@@ -20,8 +21,10 @@ class Group : public Block
     inline vector<Block>&         blocks    ();
 
     vector<vector<Grid>> gridMap();
+    vector<Point> connectedPin( Net &net );
 
     void buildSplit();
+    bool netConnected( Net &net );
   
   private:
 

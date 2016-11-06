@@ -37,7 +37,8 @@ class Router : public Rectangle
     Block* const  getBlock( const vector<Block>   &blocks , const string &name );
     int           getIndex( const vector<double>  &array  , double value );
     
-    vector<vector<Grid>> gridMap();
+    vector<vector<Grid>>  gridMap();
+    vector<Point>         connectedPin( Net &net );
 
     RoutingEngine *mRouter;
 

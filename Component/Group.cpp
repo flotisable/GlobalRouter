@@ -1,5 +1,7 @@
 #include "Group.h"
 
+#include "Pin.h"
+
 #include <algorithm>
 using namespace std;
 
@@ -23,8 +25,39 @@ vector<vector<Grid>> Group::gridMap()
 
      grids[y][x].setLabel( Grid::OBSTACLE );
   }
-  
+
+  for( unsigned int i = 0 ; i < grids.size() ; ++i )
+     for( unsigned int j = 0 ; j < grids[0].size() ; ++j )
+     {
+        grids[i][j].setCostX( mHsplit[j+1] - mHsplit[j] );
+        grids[i][j].setCostY( mVsplit[i+1] - mVsplit[i] );
+     }
+
   return grids;
+}
+
+vector<Point> Group::connectedPin( Net &net )
+{
+  vector<Point> pins;
+
+  for( const Pin &pin : net.pins() )
+  {
+     if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
+          ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
+     {
+       unsigned int x;
+       unsigned int y;
+
+       for( x = 0 ; x < mHsplit.size() ; ++x )
+          if( mHsplit[x] <= pin.x() ) break;
+       for( y = 0 ; y < mVsplit.size() ; ++y )
+          if( mVsplit[y] <= pin.y() ) break;
+
+       pins.push_back( Point( x , y ) );
+     }
+  }
+
+  return pins;
 }
 
 void Group::buildSplit()
@@ -63,6 +96,15 @@ void Group::buildSplit()
   
   mVsplit.resize( distance( mVsplit.begin() , it ) );
   mVsplit.shrink_to_fit();
+}
+
+bool Group::netConnected( Net &net )
+{
+  for( const Pin &pin : net.pins() )
+     if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
+          ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
+       return true;
+  return false;
 }
 
 
