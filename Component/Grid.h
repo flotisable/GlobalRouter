@@ -11,7 +11,8 @@ class Grid
       OBSTACLE
     };
 
-    inline Grid( int tag = 0 , int label = SPACE , double cost = 0.0 );
+    inline Grid(  int tag = 0 , int label = SPACE ,
+                  double cost = 0 , double costX = 0 , double costY = 0 );
 
     inline int    tag   () const;
     inline int    label () const;
@@ -35,8 +36,8 @@ class Grid
     double mCostY;
 };
 
-inline Grid::Grid( int tag , int label , double cost )
-  : mTag( tag ) , mLabel( label ) , mCost( cost ) {}
+inline Grid::Grid( int tag , int label , double cost , double costX , double costY )
+  : mTag( tag ) , mLabel( label ) , mCost( cost ) , mCostX( costX ) , mCostY( costY ) {}
 
 inline int    Grid::tag   () const { return mTag;   }
 inline int    Grid::label () const { return mLabel; }

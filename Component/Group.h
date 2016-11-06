@@ -9,7 +9,7 @@ using std::vector;
 #include "Net.h"
 #include "Grid.h"
 #include "Symmetry.h"
-#include "Point.h"
+#include "../Graphic/Point.h"
 
 class Group : public Block
 {

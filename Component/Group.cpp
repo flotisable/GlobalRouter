@@ -1,9 +1,10 @@
 #include "Group.h"
 
-#include "Pin.h"
-
+#include <iostream>
 #include <algorithm>
 using namespace std;
+
+#include "Pin.h"
 
 vector<vector<Grid>> Group::gridMap()
 {
@@ -26,11 +27,20 @@ vector<vector<Grid>> Group::gridMap()
      grids[y][x].setLabel( Grid::OBSTACLE );
   }
 
+  double maxH = 0;
+  double maxV = 0;
+
+  for( unsigned int i = 0 ; i < mHsplit.size() - 1 ; ++i )
+     if( mHsplit[i+1] - mHsplit[i] > maxH ) maxH = mHsplit[i+1] - mHsplit[i];
+
+  for( unsigned int i = 0 ; i < mVsplit.size() - 1 ; ++i )
+     if( mVsplit[i+1] - mVsplit[i] > maxV ) maxV = mVsplit[i+1] - mVsplit[i];
+
   for( unsigned int i = 0 ; i < grids.size() ; ++i )
      for( unsigned int j = 0 ; j < grids[0].size() ; ++j )
      {
-        grids[i][j].setCostX( mHsplit[j+1] - mHsplit[j] );
-        grids[i][j].setCostY( mVsplit[i+1] - mVsplit[i] );
+        grids[i][j].setCostX( maxH - ( mHsplit[j+1] - mHsplit[j] ) );
+        grids[i][j].setCostY( maxV - ( mVsplit[i+1] - mVsplit[i] ) );
      }
 
   return grids;

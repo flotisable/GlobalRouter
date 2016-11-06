@@ -68,7 +68,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       block.setWidth      ( width * unit );
       block.setLeftBottom ( lbX * unit , lbY *unit );
 
-      if( name == "G" ) // 設定 Group set group
+      if( name[0] == 'G' ) // 設定 Group set group
       {
         groups[groupIndex].setHeight    ( height * unit );
         groups[groupIndex].setWidth     ( width * unit );
@@ -161,7 +161,7 @@ bool Router::readNets( const string &fileName )
 
          file >> blockName >> word >> word >> x >> y;
          
-         pin.set( x * unit , y * unit );
+         pin.set( x * unit + width() / 2 , y * unit + height() / 2 );
          
          for( Group &group : groups )
          {
@@ -204,28 +204,26 @@ bool Router::route()
 {
   for( Group &group : groups )
   {
-     mRouter->grids = group.gridMap();
+     group.buildSplit();
+     mRouter->setGrids( group.gridMap() );
      
      for( Net &net : nets )
      {
         if( !group.netConnected( net ) ) continue;
 
-        mRouter->pins = group.connectedPin( net );
+        mRouter->setPins( group.connectedPin( net ) );
         mRouter->route();
-        
-        net.path().insert(  net.path().end() ,
-                            mRouter->path().begin() , mRouter->path().end() );
+        mRouter->saveNet( net );
      }
   }
 
-  mRouter->grids = gridMap();
+  mRouter->setGrids( gridMap() );
 
   for( Net &net : nets )
   {
-     mRouter->pins = connectedPin( net );
+     mRouter->setPins( connectedPin( net ) );
      mRouter->route();
-
-     net.path().insert(  net.path().end() , mRouter->path().begin() , mRouter->path().end() );
+     mRouter->saveNet( net );
   }
 
   return true;
@@ -366,11 +364,20 @@ vector<vector<Grid>> Router::gridMap()
      grids[y][x].setLabel( Grid::OBSTACLE );
   }
 
+  double maxH = 0;
+  double maxV = 0;
+
+  for( unsigned int i = 0 ; i < mHsplit.size() - 1 ; ++i )
+     if( mHsplit[i+1] - mHsplit[i] > maxH ) maxH = mHsplit[i+1] - mHsplit[i];
+
+  for( unsigned int i = 0 ; i < mVsplit.size() - 1 ; ++i )
+     if( mVsplit[i+1] - mVsplit[i] > maxV ) maxV = mVsplit[i+1] - mVsplit[i];
+
   for( unsigned int i = 0 ; i < grids.size() ; ++i )
      for( unsigned int j = 0 ; j < grids[0].size() ; ++j )
      {
-        grids[i][j].setCostX( mHsplit[j+1] - mHsplit[j] );
-        grids[i][j].setCostY( mVsplit[i+1] - mVsplit[i] );
+        grids[i][j].setCostX( maxH - ( mHsplit[j+1] - mHsplit[j] ) );
+        grids[i][j].setCostY( maxV - ( mVsplit[i+1] - mVsplit[i] ) );
      }
 
   return grids;
