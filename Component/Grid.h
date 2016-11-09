@@ -7,7 +7,7 @@ class Grid
 
     enum Label
     {
-      SPACE     = -1,
+      SPACE     = -2,
       OBSTACLE
     };
 

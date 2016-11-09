@@ -4,8 +4,7 @@
 #include <ostream>
 
 #include "../Graphic/Point.h"
-
-class Block;
+#include "Block.h"
 
 class Pin : public Point
 {
@@ -24,7 +23,8 @@ class Pin : public Point
     Block *mConnect;
 };
 
-std::ostream& operator<<( std::ostream &out , const Pin &pin );
+inline std::ostream& operator<<( std::ostream &out , const Pin &pin )
+{ return out << pin.connect()->name() << " " << static_cast<Point>( pin ); }
 
 inline Pin::Pin( Block* const connect ) : mConnect( connect ) {}
 inline Pin::Pin( Block* const connect , double x , double y )

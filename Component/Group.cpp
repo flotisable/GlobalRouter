@@ -59,14 +59,21 @@ vector<Point> Group::connectedPin( Net &net )
        unsigned int y;
 
        for( x = 0 ; x < mHsplit.size() ; ++x )
-          if( mHsplit[x] <= pin.x() ) break;
+          if( mHsplit[x] >= pin.x() )
+          {
+            --x;
+            break;
+          }
        for( y = 0 ; y < mVsplit.size() ; ++y )
-          if( mVsplit[y] <= pin.y() ) break;
+          if( mVsplit[y] >= pin.y() )
+          {
+            --y;
+            break;
+          }
 
        pins.push_back( Point( x , y ) );
      }
   }
-
   return pins;
 }
 

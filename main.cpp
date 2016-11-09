@@ -7,16 +7,16 @@ using namespace std;
 int main()
 {
   MazeRouter  routingEngine;
-  /*Router      router;
+  Router      router;
   
   router.setRouter( &routingEngine );
   
-  router.readBlock( "../display_info/display4.txt" , "../two_stage_fullnets/test.constraints" );
+  router.readBlock( "../display_info/display0.txt" , "../two_stage_fullnets/test.constraints" );
   router.readNets( "../two_stage_fullnets/final.nets" );
   router.route();
-  router.outputData( "routingReport.txt" );*/
+  router.outputData( "routingReport.txt" );
   
-  vector<vector<Grid>> grids( 3 , vector<Grid>( 5 ) );
+  /*vector<vector<Grid>> grids( 3 , vector<Grid>( 5 ) );
   
   grids[0][4].setLabel( Grid::OBSTACLE );
   grids[2][2].setLabel( Grid::OBSTACLE );
@@ -45,7 +45,7 @@ int main()
   routingEngine.route();
   routingEngine.saveNet( net );
   
-  cout << net << endl;
+  cout << net << endl;*/
 
   cin.get();
   return 0;

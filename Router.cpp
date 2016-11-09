@@ -156,39 +156,45 @@ bool Router::readNets( const string &fileName )
       {
          Pin    pin;
          string blockName;
+         Block* block;
          double x;
          double y;
 
          file >> blockName >> word >> word >> x >> y;
          
-         pin.set( x * unit + width() / 2 , y * unit + height() / 2 );
+         pin.set( x * unit , y * unit );
          
          for( Group &group : groups )
          {
             for( Symmetry &symmetry : group.symmetrys() )
             {
-               Block* const block = getBlock( symmetry.blocks() , blockName );
+               block = getBlock( symmetry.blocks() , blockName );
 
                if( block )
                {
                  pin.setConnect( block );
+                 pin += block->center();
                  goto match;
                }
             }
             
-            Block* const block = getBlock( group.blocks() , blockName );
+            block = getBlock( group.blocks() , blockName );
 
             if( block )
             {
               pin.setConnect( block );
+              pin += block->center();
               goto match;
             }
          }
+         block = getBlock( blocks , blockName );
+
+         if( block )
+         {
+           pin.setConnect( block );
+           pin += block->center();
+         }
          match:
-
-         Block* const block = getBlock( blocks , blockName );
-
-         if( block ) pin.setConnect( block );
          
          net.pins().push_back( pin );
       }
@@ -396,13 +402,20 @@ vector<Point> Router::connectedPin( Net &net )
        unsigned int y;
 
        for( x = 0 ; x < mHsplit.size() ; ++x )
-          if( mHsplit[x] <= pin.x() ) break;
+          if( mHsplit[x] >= pin.x() )
+          {
+            --x;
+            break;
+          }
        for( y = 0 ; y < mVsplit.size() ; ++y )
-          if( mVsplit[y] <= pin.y() ) break;
+          if( mVsplit[y] >= pin.y() )
+          {
+            --y;
+            break;
+          }
 
        pins.push_back( Point( x , y ) );
      }
   }
-
   return pins;
 }
