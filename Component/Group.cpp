@@ -135,15 +135,15 @@ int Group::getIndex( const vector<double> &array , double value )
 
 ostream& operator<<( ostream &out , Group &group )
 {
-  out << "[ Group : " << group.name() << "]\n";
+  out << "[ Group : " << group.name() << " ]\n";
 
   group.buildSplit();
 
-  out << "Horizontal Split :\n";
+  out << "Horizontal Split : " << group.hsplit().size() << endl;
   for( double point : group.hsplit() ) out << point << endl;
   out << endl;
   
-  out << "Vertical Split :\n";
+  out << "Vertical Split : " << group.vsplit().size() << endl;
   for( double point : group.vsplit() ) out << point << endl;
   out << endl;
   
@@ -162,10 +162,10 @@ ostream& operator<<( ostream &out , Group &group )
   }
   out << endl;
 
-  out << "Symmetrys :\n";
+  out << "Symmetrys : " << group.symmetrys().size() << endl;;
   for( Symmetry& symmetry : group.symmetrys() ) out << symmetry << endl;
   
-  out << "Blocks :\n";
+  out << "Blocks : " << group.blocks().size() << endl;
   for( const Block& block : group.blocks() ) out << block << endl;
 
   return out;

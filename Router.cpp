@@ -4,6 +4,7 @@
 #include <string>
 #include <cctype>
 #include <algorithm>
+#include <iostream>
 using namespace std;
 
 #include "Component/Block.h"
@@ -240,12 +241,12 @@ void Router::outputData( const string &fileName )
   ofstream file( fileName );
   
   file << "[ Graph ]\n";
-  file << "Horizontal Split : \n";
+  file << "Horizontal Split : " << mHsplit.size() << endl;
   
   for( double point : mHsplit ) file << point << endl;
   file << endl;
   
-  file << "Vertical Split : \n";
+  file << "Vertical Split : " << mVsplit.size() << endl;
   
   for( double point : mVsplit ) file << point << endl;
   file << endl;
@@ -265,14 +266,14 @@ void Router::outputData( const string &fileName )
   }
   file << endl;
   
-  file << "[ Groups ]\n";
+  file << "Groups : " << groups.size() << endl;
   for( Group &group : groups ) file << group << endl;
   
-  file << "[ Blocks ]\n";
+  file << "Blocks : " << blocks.size() << endl;
   for( const Block &block : blocks ) file << block << endl;
   file << endl;
   
-  file << "[ Nets ]\n";
+  file << "Nets : " << nets.size() << endl;
   for( Net &net : nets ) file << net << endl;
   file << endl;
 }
@@ -283,6 +284,8 @@ bool Router::readGroup( const string &fileName )
   ifstream          file( fileName );
   string            word;
   vector<Symmetry>  symmetrys;
+
+  cout << file.is_open() << endl;
 
   while( !file.eof() )
   {
@@ -335,7 +338,7 @@ bool Router::readGroup( const string &fileName )
   return true;
 }
 
-Block* const Router::getBlock( const vector<Block> &blocks , const string &name )
+Block* Router::getBlock( const vector<Block> &blocks , const string &name )
 {
   auto it = find_if(  blocks.begin() , blocks.end() ,
                       [&]( const Block &block ) { return block.name() == name; } );

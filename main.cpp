@@ -4,17 +4,29 @@ using namespace std;
 #include "MazeRouter.h"
 #include "Router.h"
 
+#define FLOTISABLE_LINUX
+
 int main()
 {
+#ifdef FLOTISABLE_LINUX
+  const string dirPath      = "/home/flotisable/Collage/ProjectImplimentation/";
+  const string displayPath  = dirPath + "display_info/";
+  const string twoStagePath = dirPath + "TwoStageFullnets/";
+#else
+  const string dirPath      = "";
+  const string displayPath  = dirPath + "";
+  const string twoStagePath = dirPath + "";
+#endif
+
   MazeRouter  routingEngine;
   Router      router;
   
   router.setRouter( &routingEngine );
   
-  router.readBlock( "../display_info/display0.txt" , "../two_stage_fullnets/test.constraints" );
-  router.readNets( "../two_stage_fullnets/final.nets" );
+  router.readBlock( displayPath + "display0.txt" , twoStagePath + "test.constraints" );
+  router.readNets( twoStagePath + "final.nets" );
   router.route();
-  router.outputData( "routingReport.txt" );
+  router.outputData( dirPath + "routingReport.txt" );
   
   /*vector<vector<Grid>> grids( 3 , vector<Grid>( 5 ) );
   

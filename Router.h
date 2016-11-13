@@ -20,7 +20,7 @@ class Router : public Rectangle
 
     inline Router( RoutingEngine* const router = nullptr );
 
-    inline RoutingEngine* const router() const;
+    inline RoutingEngine* router() const;
 
     inline void setRouter( RoutingEngine* const router );
 
@@ -34,8 +34,8 @@ class Router : public Rectangle
 
     bool readGroup( const string &fileName );
     
-    Block* const  getBlock( const vector<Block>   &blocks , const string &name );
-    int           getIndex( const vector<double>  &array  , double value );
+    Block*  getBlock( const vector<Block>   &blocks , const string &name );
+    int     getIndex( const vector<double>  &array  , double value );
     
     vector<vector<Grid>>  gridMap();
     vector<Point>         connectedPin( Net &net );
@@ -51,7 +51,7 @@ class Router : public Rectangle
 
 inline Router::Router( RoutingEngine* const router ) : mRouter( router ) {}
 
-inline RoutingEngine* const Router::router() const { return mRouter; }
+inline RoutingEngine* Router::router() const { return mRouter; }
 
 inline void Router::setRouter( RoutingEngine* const router ) { mRouter = router; }
 
