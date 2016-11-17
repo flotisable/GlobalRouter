@@ -4,26 +4,39 @@
 #include <climits>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 using namespace std;
 
 bool MazeRouter::route()
 {
   Point source = mPins.front();
 
+  mPath.path().clear();
+
   for( const Point &pin : mPins )
   {
-     cout << pin << endl;
-  
      Point target = pin;
-
+     
+     cout << pin << endl;
+     
      if( source == target ) continue;
 
-     if( findPath( source , target ) )  backTrace( source , target );
-     else                               return false;
+     if( findPath( source , target ) )
+     {
+       vector<Point> path = backTrace( source , target );
+
+       mPath.path().insert( mPath.path().begin() , path.begin() , path.end() );
+     }
+     else return false;
 
      ++tag;
      source = target;
   }
+
+  auto it = unique( mPath.path().begin() , mPath.path().end() );
+
+  mPath.path().resize( distance( mPath.path().begin() , it ) );
+  
   cout << endl;
   return true;
 }
@@ -142,7 +155,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
   return false;
 }
 
-void MazeRouter::backTrace( const Point &source , const Point &target )
+vector<Point> MazeRouter::backTrace( const Point &source , const Point &target )
 {
   enum MoveDirect
   {
@@ -153,14 +166,14 @@ void MazeRouter::backTrace( const Point &source , const Point &target )
 
   constexpr double wireWidth = 0.23;
 
-  int x                 = target.x();
-  int y                 = target.y();
-  int cost              = INT_MAX;
-  int label             = INT_MAX;
-  MoveDirect direction  = unknown;
+  int           x         = target.x();
+  int           y         = target.y();
+  int           cost      = INT_MAX;
+  int           label     = INT_MAX;
+  MoveDirect    direction = unknown;
+  vector<Point> path;
 
-  mPath.clear();
-  mPath.push_back( target );
+  path.push_back( target );
   
   while( x != source.x() || y != source.y() )
   {
@@ -220,12 +233,12 @@ void MazeRouter::backTrace( const Point &source , const Point &target )
       if( x != xNext && direction == vertical )
       {
         direction = horizontal;
-        mPath.push_back( Point( x , y ) );
+        path.push_back( Point( x , y ) );
       }
       else if( y != yNext && direction == horizontal )
       {
         direction = vertical;
-        mPath.push_back( Point( x , y ) );
+        path.push_back( Point( x , y ) );
       }
     }
     if      ( direction == horizontal )
@@ -240,7 +253,9 @@ void MazeRouter::backTrace( const Point &source , const Point &target )
     mGrids[y][x].setCostX( mGrids[y][x].costX() + wireWidth );
   else if ( direction == vertical )
     mGrids[y][x].setCostY( mGrids[y][x].costY() + wireWidth );
-  mPath.push_back( source );
-  
+  path.push_back( source );
+
   cout << "trace success\n";
+  
+  return path;
 }

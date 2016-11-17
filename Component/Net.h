@@ -7,8 +7,8 @@
 using std::vector;
 using std::string;
 
-#include "../Graphic/Point.h"
 #include "Pin.h"
+#include "Path.h"
 
 class Net
 {
@@ -20,7 +20,7 @@ class Net
     inline const string&  name          () const;
     inline int            currentDensity() const;
     inline vector<Pin>&   pins          ();
-    inline vector<Point>& path          ();
+    inline vector<Path>&  paths         ();
 
     inline void setName          ( const string &name           );
     inline void setCurrentDensity( int          currentDensity  );
@@ -31,7 +31,7 @@ class Net
     int    mCurrentDensity;
 
     vector<Pin>   mPins;
-    vector<Point> mPath;
+    vector<Path>  mPaths;
 };
 
 std::ostream& operator<<( std::ostream &out , Net &net );
@@ -43,7 +43,7 @@ inline Net::Net( const string &name , int currentDensity )
 inline const string&  Net::name          () const  { return mName;           }
 inline int            Net::currentDensity() const  { return mCurrentDensity; }
 inline vector<Pin>&   Net::pins          ()        { return mPins;           }
-inline vector<Point>& Net::path          ()        { return mPath;           }
+inline vector<Path>&  Net::paths         ()        { return mPaths;          }
 
 inline void Net::setName          ( const string  &name )
 { mName = name; }

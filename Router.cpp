@@ -5,6 +5,7 @@
 #include <cctype>
 #include <algorithm>
 #include <iostream>
+#include <cassert>
 using namespace std;
 
 #include "Component/Block.h"
@@ -16,7 +17,12 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
   ifstream  file( fileName );
   int       groupIndex = 0;
 
-  readGroup( groupFileName );
+  if( !readGroup( groupFileName ) ) return false;
+  if( !file.is_open() )
+  {
+    cerr << "cannot read " << fileName << endl;
+    return false;
+  }
 
   while( !file.eof() )
   {
@@ -53,6 +59,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       
       if( name == "ALL" ) // 設定邊界 setup boudary
       {
+        setName       ( "ALL" );
         setHeight     ( height * unit );
         setWidth      ( width * unit );
         setLeftBottom ( lbX * unit , lbY *unit );
@@ -139,6 +146,12 @@ bool Router::readNets( const string &fileName )
   ifstream  file( fileName );
   string    word;
   
+  if( !file.is_open() )
+  {
+    cerr << "cannot read " << fileName << endl;
+    return false;
+  }
+  
   while( !file.eof() )
   {
     file >> word;
@@ -209,6 +222,8 @@ bool Router::readNets( const string &fileName )
 
 bool Router::route()
 {
+  if( mVsplit.size() == 0 || mHsplit.size() == 0 ) return false;
+
   for( Group &group : groups )
   {
      group.buildSplit();
@@ -221,6 +236,9 @@ bool Router::route()
         mRouter->setPins( group.connectedPin( net ) );
         mRouter->route();
         mRouter->saveNet( net );
+        
+        for( Path &path : net.paths() )
+           if( !path.belongBlock() ) path.setBelongBlock( &group );
      }
   }
 
@@ -231,6 +249,9 @@ bool Router::route()
      mRouter->setPins( connectedPin( net ) );
      mRouter->route();
      mRouter->saveNet( net );
+     
+     for( Path &path : net.paths() )
+        if( !path.belongBlock() ) path.setBelongBlock( this );
   }
 
   return true;
@@ -285,7 +306,11 @@ bool Router::readGroup( const string &fileName )
   string            word;
   vector<Symmetry>  symmetrys;
 
-  cout << file.is_open() << endl;
+  if( !file.is_open() )
+  {
+    cerr << "cannot read " << fileName << endl;
+    return false;
+  }
 
   while( !file.eof() )
   {
@@ -355,6 +380,8 @@ int Router::getIndex( const vector<double> &array , double value )
 
 vector<vector<Grid>> Router::gridMap()
 {
+  assert( mVsplit.size() > 0 );
+  assert( mHsplit.size() > 0 );
   vector<vector<Grid>> grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
 
   for( const Group &group : groups )

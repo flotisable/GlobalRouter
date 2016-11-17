@@ -7,6 +7,7 @@ using std::vector;
 #include "Graphic/Point.h"
 #include "Component/Net.h"
 #include "Component/Grid.h"
+#include "Component/Path.h"
 
 class MazeRouter
 {
@@ -30,20 +31,20 @@ class MazeRouter
       directNum
     };
 
-    bool findPath ( const Point &source , const Point &target );
-    void backTrace( const Point &source , const Point &target );
+    bool          findPath ( const Point &source , const Point &target );
+    vector<Point> backTrace( const Point &source , const Point &target );
 
     int tag = 1;
 
     vector<vector<Grid>>  mGrids;
     vector<Point>         mPins;
-    vector<Point>         mPath;
+    Path                  mPath;
 };
 
 inline void MazeRouter::setGrids( const vector<vector<Grid>>  grids ) { mGrids  = grids;  }
 inline void MazeRouter::setPins ( const vector<Point>         pins  ) { mPins   = pins;   }
 
 inline void MazeRouter::saveNet( Net &net )
-{ net.path().insert( net.path().begin() , mPath.begin() , mPath.end() ); }
+{ if( !mPath.path().empty() ) net.paths().push_back( mPath ); }
 
 #endif

@@ -6,7 +6,6 @@
 using std::vector;
 using std::string;
 
-#include "Graphic/Rectangle.h"
 #include "Component/Net.h"
 #include "Component/Block.h"
 #include "Component/Group.h"
@@ -14,7 +13,7 @@ using std::string;
 
 using RoutingEngine = MazeRouter;
 
-class Router : public Rectangle
+class Router : public Block
 {
   public:
 
