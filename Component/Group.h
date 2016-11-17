@@ -5,42 +5,28 @@
 #include <ostream>
 using std::vector;
 
-#include "Block.h"
-#include "Net.h"
-#include "Grid.h"
+#include "../RoutingGraph/RoutingRegion.h"
 #include "Symmetry.h"
-#include "../Graphic/Point.h"
 
-class Group : public Block
+class Group : public RoutingRegion
 {
   public:
-  
-    inline const vector<double>&  hsplit    ();
-    inline const vector<double>&  vsplit    ();
-    inline vector<Symmetry>&      symmetrys ();
-    inline vector<Block>&         blocks    ();
 
-    vector<vector<Grid>> gridMap();
-    vector<Point> connectedPin( Net &net );
+    inline vector<Symmetry>& symmetrys();
+    
+    virtual vector<vector<Grid>> gridMap() override;
+    
+    virtual Block* getBlock( const string &name ) override;
 
-    void buildSplit();
-    bool netConnected( Net &net );
-  
+    virtual void buildSplit() override;
+
   private:
 
-    int getIndex( const vector<double> &array , double value );
-
-    vector<double>    mHsplit;
-    vector<double>    mVsplit;
     vector<Symmetry>  mSymmetrys;
-    vector<Block>     mBlocks;
 };
 
 std::ostream& operator<<( std::ostream &out , Group &group );
 
-inline const vector<double>&  Group::hsplit   () { return mHsplit;    }
-inline const vector<double>&  Group::vsplit   () { return mVsplit;    }
-inline vector<Symmetry>&      Group::symmetrys() { return mSymmetrys; }
-inline vector<Block>&         Group::blocks   () { return mBlocks;    }
+inline vector<Symmetry>& Group::symmetrys() { return mSymmetrys; }
 
 #endif

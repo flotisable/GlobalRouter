@@ -88,17 +88,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       {
         for( Group &group : groups )
         {
-           for( Symmetry &symmetry : group.symmetrys() )
-           {
-              Block* const blockPtr = getBlock( symmetry.blocks() , block.name() );
-
-              if( blockPtr )
-              {
-                *blockPtr = block;
-                goto match;
-              }
-           }
-           Block* const blockPtr = getBlock( group.blocks() , block.name() );
+           Block* blockPtr = group.getBlock( block.name() );
 
            if( blockPtr )
            {
@@ -108,7 +98,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
         }
         goto noMatch;
         match:    continue;
-        noMatch:  blocks.push_back( block );
+        noMatch:  mBlocks.push_back( block );
       }
 
       mHsplit.push_back( block.left()   );
@@ -177,38 +167,12 @@ bool Router::readNets( const string &fileName )
          file >> blockName >> word >> word >> x >> y;
          
          pin.set( x * unit , y * unit );
-         
-         for( Group &group : groups )
-         {
-            for( Symmetry &symmetry : group.symmetrys() )
-            {
-               block = getBlock( symmetry.blocks() , blockName );
 
-               if( block )
-               {
-                 pin.setConnect( block );
-                 pin += block->center();
-                 goto match;
-               }
-            }
-            
-            block = getBlock( group.blocks() , blockName );
-
-            if( block )
-            {
-              pin.setConnect( block );
-              pin += block->center();
-              goto match;
-            }
-         }
-         block = getBlock( blocks , blockName );
-
-         if( block )
+         if( ( block = getBlock( blockName ) ) )
          {
            pin.setConnect( block );
            pin += block->center();
          }
-         match:
          
          net.pins().push_back( pin );
       }
@@ -290,13 +254,68 @@ void Router::outputData( const string &fileName )
   file << "Groups : " << groups.size() << endl;
   for( Group &group : groups ) file << group << endl;
   
-  file << "Blocks : " << blocks.size() << endl;
-  for( const Block &block : blocks ) file << block << endl;
+  file << "Blocks : " << mBlocks.size() << endl;
+  for( const Block &block : mBlocks ) file << block << endl;
   file << endl;
   
   file << "Nets : " << nets.size() << endl;
   for( Net &net : nets ) file << net << endl;
   file << endl;
+}
+
+vector<vector<Grid>> Router::gridMap()
+{
+  assert( mVsplit.size() > 0 );
+  assert( mHsplit.size() > 0 );
+  vector<vector<Grid>> grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
+
+  for( const Group &group : groups )
+  {
+     int x = getIndex( mHsplit , group.left  () );
+     int y = getIndex( mVsplit , group.bottom() );
+
+     grids[y][x].setLabel( Grid::OBSTACLE );
+  }
+
+  for( const Block &block : mBlocks )
+  {
+     int x = getIndex( mHsplit , block.left  () );
+     int y = getIndex( mVsplit , block.bottom() );
+
+     grids[y][x].setLabel( Grid::OBSTACLE );
+  }
+
+  double maxH = 0;
+  double maxV = 0;
+
+  for( unsigned int i = 0 ; i < mHsplit.size() - 1 ; ++i )
+     if( mHsplit[i+1] - mHsplit[i] > maxH ) maxH = mHsplit[i+1] - mHsplit[i];
+
+  for( unsigned int i = 0 ; i < mVsplit.size() - 1 ; ++i )
+     if( mVsplit[i+1] - mVsplit[i] > maxV ) maxV = mVsplit[i+1] - mVsplit[i];
+
+  for( unsigned int i = 0 ; i < grids.size() ; ++i )
+     for( unsigned int j = 0 ; j < grids[0].size() ; ++j )
+     {
+        grids[i][j].setCostX( maxH - ( mHsplit[j+1] - mHsplit[j] ) );
+        grids[i][j].setCostY( maxV - ( mVsplit[i+1] - mVsplit[i] ) );
+     }
+
+  return grids;
+}
+
+void Router::buildSplit()
+{}
+
+Block* Router::getBlock( const string &name )
+{
+  for( Group &group : groups )
+  {
+    Block *block = group.getBlock( name );
+    
+    if( block ) return block;
+  }
+  return RoutingRegion::getBlock( name );
 }
 
 
@@ -361,91 +380,4 @@ bool Router::readGroup( const string &fileName )
   }
 
   return true;
-}
-
-Block* Router::getBlock( const vector<Block> &blocks , const string &name )
-{
-  auto it = find_if(  blocks.begin() , blocks.end() ,
-                      [&]( const Block &block ) { return block.name() == name; } );
-
-  return ( it != blocks.end() ) ? const_cast<Block* const>( &( *it ) ) : nullptr;
-}
-
-int Router::getIndex( const vector<double> &array , double value )
-{
-  for( int i = 0 ; i < static_cast<int>( array.size() ) ; ++i )
-     if( array[i] == value ) return i;
-  return -1;
-}
-
-vector<vector<Grid>> Router::gridMap()
-{
-  assert( mVsplit.size() > 0 );
-  assert( mHsplit.size() > 0 );
-  vector<vector<Grid>> grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
-
-  for( const Group &group : groups )
-  {
-     int x = getIndex( mHsplit , group.left  () );
-     int y = getIndex( mVsplit , group.bottom() );
-
-     grids[y][x].setLabel( Grid::OBSTACLE );
-  }
-
-  for( const Block &block : blocks )
-  {
-     int x = getIndex( mHsplit , block.left  () );
-     int y = getIndex( mVsplit , block.bottom() );
-
-     grids[y][x].setLabel( Grid::OBSTACLE );
-  }
-
-  double maxH = 0;
-  double maxV = 0;
-
-  for( unsigned int i = 0 ; i < mHsplit.size() - 1 ; ++i )
-     if( mHsplit[i+1] - mHsplit[i] > maxH ) maxH = mHsplit[i+1] - mHsplit[i];
-
-  for( unsigned int i = 0 ; i < mVsplit.size() - 1 ; ++i )
-     if( mVsplit[i+1] - mVsplit[i] > maxV ) maxV = mVsplit[i+1] - mVsplit[i];
-
-  for( unsigned int i = 0 ; i < grids.size() ; ++i )
-     for( unsigned int j = 0 ; j < grids[0].size() ; ++j )
-     {
-        grids[i][j].setCostX( maxH - ( mHsplit[j+1] - mHsplit[j] ) );
-        grids[i][j].setCostY( maxV - ( mVsplit[i+1] - mVsplit[i] ) );
-     }
-
-  return grids;
-}
-
-vector<Point> Router::connectedPin( Net &net )
-{
-  vector<Point> pins;
-
-  for( const Pin &pin : net.pins() )
-  {
-     if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
-          ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
-     {
-       unsigned int x;
-       unsigned int y;
-
-       for( x = 0 ; x < mHsplit.size() ; ++x )
-          if( mHsplit[x] >= pin.x() )
-          {
-            --x;
-            break;
-          }
-       for( y = 0 ; y < mVsplit.size() ; ++y )
-          if( mVsplit[y] >= pin.y() )
-          {
-            --y;
-            break;
-          }
-
-       pins.push_back( Point( x , y ) );
-     }
-  }
-  return pins;
 }

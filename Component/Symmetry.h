@@ -19,6 +19,8 @@ class Symmetry
     inline vector<Block>& blocks();
     
     inline void setName( const string &name );
+    
+    Block* getBlock( const string &name );
   
   private:
   
