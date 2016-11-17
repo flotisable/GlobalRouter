@@ -35,8 +35,8 @@ class RoutingRegion : public Block
     vector<Block>   mBlocks;
 };
 
-inline const vector<double>&  RoutingRegion::hsplit() { return mHsplit; }
-inline const vector<double>&  RoutingRegion::vsplit() { return mVsplit; }
-inline vector<Block>&         RoutingRegion::blocks() { return mBlocks; }
+inline const vector<double>&  RoutingRegion::hsplit() const { return mHsplit; }
+inline const vector<double>&  RoutingRegion::vsplit() const { return mVsplit; }
+inline vector<Block>&         RoutingRegion::blocks()       { return mBlocks; }
 
 #endif

@@ -6,15 +6,12 @@
 using std::vector;
 using std::string;
 
-#include "RoutingGraph/RoutingRegion.h"
-#include "Component/Net.h"
-#include "Component/Block.h"
-#include "Component/Group.h"
+#include "RoutingGraph/RoutingGraph.h"
 #include "MazeRouter.h"
 
 using RoutingEngine = MazeRouter;
 
-class Router : public RoutingRegion
+class Router
 {
   public:
 
@@ -29,11 +26,6 @@ class Router : public RoutingRegion
     bool route    ();
     
     void outputData( const string &fileName );
-    
-    virtual vector<vector<Grid>>  gridMap   () override;
-    virtual void                  buildSplit() override;
-    
-    virtual Block* getBlock( const string &name ) override;
 
   private:
 
@@ -41,8 +33,7 @@ class Router : public RoutingRegion
 
     RoutingEngine *mRouter;
 
-    vector<Net>   nets;
-    vector<Group> groups;
+    RoutingGraph graph;
 };
 
 inline Router::Router( RoutingEngine* router ) : mRouter( router ) {}

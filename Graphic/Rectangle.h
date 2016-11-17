@@ -16,7 +16,7 @@ class Rectangle
     inline const Point& center    () const;
     inline double       width     () const;
     inline double       height    () const;
-    inline Point        leftButtom() const;
+    inline Point        leftBottom() const;
 
     inline void setCenter    ( double x , double y );
     inline void setCenter    ( const Point &p      );
@@ -54,7 +54,7 @@ inline Rectangle::Rectangle( const Point &center , double h , double w )
 inline const Point& Rectangle::center    () const { return mCenter; }
 inline double       Rectangle::width     () const { return mWidth; }
 inline double       Rectangle::height    () const { return mHeight; }
-inline Point        Rectangle::leftButtom() const { return Point( left() , bottom() );  }
+inline Point        Rectangle::leftBottom() const { return Point( left() , bottom() );  }
 
 inline void Rectangle::setCenter    ( double x , double y ) { mCenter  = Point( x , y ); }
 inline void Rectangle::setCenter    ( const Point &p      ) { mCenter  = p; }
