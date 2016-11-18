@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <ostream>
+#include <iostream>
 using std::string;
 using std::vector;
 
@@ -29,6 +29,7 @@ class Symmetry
 };
 
 std::ostream& operator<<( std::ostream &out , Symmetry &symmetry );
+std::istream& operator>>( std::istream &in  , Symmetry &symmetry );
 
 inline Symmetry::Symmetry( const string &name ) : mName( name ) {}
 

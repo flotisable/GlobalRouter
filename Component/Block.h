@@ -2,7 +2,7 @@
 #define BLOCK_H
 
 #include <string>
-#include <ostream>
+#include <iostream>
 using std::string;
 
 #include "../Graphic/Point.h"
@@ -26,6 +26,7 @@ class Block : public Rectangle
 };
 
 std::ostream& operator<<( std::ostream &out , const Block &block );
+std::istream& operator>>( std::istream &in  , Block &block );
 
 inline Block::Block(  const string &name ) : mName( name ) {}
 inline Block::Block(  const string &name , double centerX , double centerY ,

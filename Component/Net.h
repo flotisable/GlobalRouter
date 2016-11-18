@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include <ostream>
+#include <iostream>
 using std::vector;
 using std::string;
 
@@ -35,6 +35,7 @@ class Net
 };
 
 std::ostream& operator<<( std::ostream &out , Net &net );
+std::istream& operator>>( std::istream &in  , Net &net );
 
 inline Net::Net( const string &name ) : mName( name ) {}
 inline Net::Net( const string &name , int currentDensity )

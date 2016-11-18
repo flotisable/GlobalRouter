@@ -14,6 +14,34 @@ std::ostream& operator<<( std::ostream &out , Symmetry &symmetry )
   return out;
 }
 
+std::istream& operator>>( std::istream &in  , Symmetry &symmetry )
+{
+  using std::getline;
+
+  string word;
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Blocks : " ) != string::npos )
+    {
+      int blockNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; i < blockNum ; ++i )
+      {
+        Block block;
+
+        in >> block;
+        symmetry.blocks().push_back( block );
+      }
+      break;
+    }
+  }
+  return in;
+}
+
+
 Block* Symmetry::getBlock( const string &name )
 {
   auto it = std::find_if( mBlocks.begin() , mBlocks.end() ,

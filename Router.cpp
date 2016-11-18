@@ -50,14 +50,14 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       file >> lbX >> lbY >> width >> height >> name;
       
       /*
-        因為 Block 設計的關係，要先設定 Height , Width 再設定 LeftButtom 才不會出問題
-        because of the design of Block, we need to setup Hieght and Width first, and then
-        setup LeftButtom
+        因為 Block 設計的關係，要先設定 LeftBottom 再設定 Height , Width 才不會出問題
+        because of the design of Block, we need to setup LeftBottom first, and then
+        setup Height and Width
       */
       block.setName       ( name );
+      block.setLeftBottom ( lbX * unit , lbY *unit );
       block.setHeight     ( height * unit );
       block.setWidth      ( width * unit );
-      block.setLeftBottom ( lbX * unit , lbY *unit );
 
       if( name == "ALL" )
       {
@@ -65,9 +65,9 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       }
       else if( name[0] == 'G' ) // 設定 Group set group
       {
+        graph.groups()[groupIndex].setLeftBottom( lbX * unit , lbY * unit );
         graph.groups()[groupIndex].setHeight    ( height * unit );
         graph.groups()[groupIndex].setWidth     ( width * unit );
-        graph.groups()[groupIndex].setLeftBottom( lbX * unit , lbY * unit );
         
         groupIndex++;
       }
@@ -167,7 +167,7 @@ bool Router::route()
         mRouter->saveNet( net );
         
         for( Path &path : net.paths() )
-           if( !path.belongBlock() ) path.setBelongBlock( &group );
+           path.setBelongRegion( &group );
      }
   }
 
@@ -178,9 +178,9 @@ bool Router::route()
      mRouter->setPins( graph.connectedPin( net ) );
      mRouter->route();
      mRouter->saveNet( net );
-     
+
      for( Path &path : net.paths() )
-        if( !path.belongBlock() ) path.setBelongBlock( &graph );
+        path.setBelongRegion( &graph );
   }
   return true;
 }

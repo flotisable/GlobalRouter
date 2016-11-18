@@ -41,6 +41,101 @@ ostream& operator<<( ostream &out , Group &group )
   return out;
 }
 
+istream& operator>>( istream &in  , Group &group )
+{
+  string word;
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Horizontal Split : " ) != string::npos )
+    {
+      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; i < splitNum ; ++i )
+      {
+        getline( in , word );
+        group.hsplit().push_back( stod( word ) );
+      }
+      group.setLeft  ( group.hsplit().front () );
+      group.setRight ( group.hsplit().back  () );
+      break;
+    }
+  }
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Vertical Split : " ) != string::npos )
+    {
+      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; i < splitNum ; ++i )
+      {
+        getline( in , word );
+        group.vsplit().push_back( stod( word ) );
+      }
+      group.setBottom( group.vsplit().front () );
+      group.setTop   ( group.vsplit().back  () );
+      break;
+    }
+  }
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Symmetrys : " ) != string::npos )
+    {
+      int SymmetryNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; !in.eof() && i < SymmetryNum ; )
+      {
+        getline( in , word );
+
+        if( word.find( "[ Symmetry : " ) != string::npos )
+        {
+          Symmetry      symmetry;
+          unsigned int  start = word.find( ": " ) + 2;
+          unsigned int  end   = word.rfind( ' ' );
+
+          symmetry.setName( word.substr( start , end - start ) );
+
+          in >> symmetry;
+
+          group.symmetrys().push_back( symmetry );
+          ++i;
+        }
+      }
+      break;
+    }
+  }
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Blocks : " ) != string::npos )
+    {
+      int blockNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; i < blockNum ; ++i )
+      {
+        Block block;
+
+        in >> block;
+        group.blocks().push_back( block );
+      }
+      break;
+    }
+  }
+
+  return in;
+}
+
+
 vector<vector<Grid>> Group::gridMap()
 {
   assert( mVsplit.size() > 0 && mHsplit.size() > 0 );

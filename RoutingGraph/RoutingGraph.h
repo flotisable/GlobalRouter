@@ -20,7 +20,8 @@ class RoutingGraph : public RoutingRegion
     virtual vector<vector<Grid>>  gridMap   () override;
     virtual void                  buildSplit() override;
 
-    virtual Block* getBlock( const string &name ) override;
+    virtual Block* getBlock ( const string &name ) override;
+    RoutingRegion* getRegion( const string &name );
     
     Block operator=( const Block &block );
   
@@ -31,6 +32,7 @@ class RoutingGraph : public RoutingRegion
 };
 
 std::ostream& operator<<( std::ostream &out , RoutingGraph &graph );
+std::istream& operator>>( std::istream &in  , RoutingGraph &graph );
 
 inline vector<Net>&   RoutingGraph::nets  () { return mNets;    }
 inline vector<Group>& RoutingGraph::groups() { return mGroups;  }

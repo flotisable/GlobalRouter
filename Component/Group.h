@@ -2,7 +2,7 @@
 #define GROUP_H
 
 #include <vector>
-#include <ostream>
+#include <iostream>
 using std::vector;
 
 #include "../RoutingGraph/RoutingRegion.h"
@@ -26,6 +26,7 @@ class Group : public RoutingRegion
 };
 
 std::ostream& operator<<( std::ostream &out , Group &group );
+std::istream& operator>>( std::istream &in  , Group &group );
 
 inline vector<Symmetry>& Group::symmetrys() { return mSymmetrys; }
 

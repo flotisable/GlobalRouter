@@ -1,7 +1,7 @@
 #ifndef POINT_H
 #define POINT_H
 
-#include <ostream>
+#include <iostream>
 #include <cmath>
 
 class Point
@@ -34,6 +34,7 @@ class Point
 
 // Point non-member function
 std::ostream& operator<<( std::ostream &out , const Point &point );
+std::istream& operator>>( std::istream &in  , Point       &point );
 
 inline double manhattanDistance( const Point &a , const Point &b )
 { return ( abs( a.x() - b.x() ) + abs( a.y() - b.y() ) ); }

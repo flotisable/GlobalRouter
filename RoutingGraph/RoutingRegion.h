@@ -13,9 +13,11 @@ using std::vector;
 class RoutingRegion : public Block
 {
   public:
-  
-    inline const vector<double>&  hsplit() const;
-    inline const vector<double>&  vsplit() const;
+
+    virtual ~RoutingRegion() = default;
+
+    inline vector<double>&  hsplit();
+    inline vector<double>&  vsplit();
     inline vector<Block>&         blocks();
     
     virtual vector<vector<Grid>>  gridMap() = 0;
@@ -35,8 +37,8 @@ class RoutingRegion : public Block
     vector<Block>   mBlocks;
 };
 
-inline const vector<double>&  RoutingRegion::hsplit() const { return mHsplit; }
-inline const vector<double>&  RoutingRegion::vsplit() const { return mVsplit; }
-inline vector<Block>&         RoutingRegion::blocks()       { return mBlocks; }
+inline vector<double>&  RoutingRegion::hsplit() { return mHsplit; }
+inline vector<double>&  RoutingRegion::vsplit() { return mVsplit; }
+inline vector<Block>&   RoutingRegion::blocks() { return mBlocks; }
 
 #endif

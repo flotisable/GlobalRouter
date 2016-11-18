@@ -2,9 +2,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <string>
 using namespace std;
 
-std::ostream& operator<<( std::ostream &out , RoutingGraph &graph )
+ostream& operator<<( ostream &out , RoutingGraph &graph )
 {
   out << "[ Graph ]\n";
   out << "Horizontal Split : " << graph.hsplit().size() << endl;
@@ -44,6 +45,136 @@ std::ostream& operator<<( std::ostream &out , RoutingGraph &graph )
   out << endl;
   
   return out;
+}
+
+istream& operator>>( istream &in  , RoutingGraph &graph )
+{
+  string word;
+
+  graph.setName( "ALL" );
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Horizontal Split : " ) != string::npos )
+    {
+      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; i < splitNum ; ++i )
+      {
+        getline( in , word );
+        graph.hsplit().push_back( stod( word ) );
+      }
+      graph.setLeft  ( graph.hsplit().front () );
+      graph.setRight ( graph.hsplit().back  () );
+      break;
+    }
+  }
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Vertical Split : " ) != string::npos )
+    {
+      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; i < splitNum ; ++i )
+      {
+        getline( in , word );
+        graph.vsplit().push_back( stod( word ) );
+      }
+      graph.setBottom( graph.vsplit().front () );
+      graph.setTop   ( graph.vsplit().back  () );
+      break;
+    }
+  }
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Groups : " ) != string::npos )
+    {
+      int groupNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; !in.eof() && i < groupNum ; )
+      {
+        getline( in , word );
+
+        if( word.find( "[ Group : " ) != string::npos )
+        {
+          Group         group;
+          unsigned int  start = word.find( ": " ) + 2;
+          unsigned int  end   = word.rfind( ' ' );
+
+          group.setName( word.substr( start , end - start ) );
+
+          in >> group;
+
+          graph.groups().push_back( group );
+          ++i;
+        }
+      }
+      break;
+    }
+  }
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Blocks : " ) != string::npos )
+    {
+      int blockNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; i < blockNum ; ++i )
+      {
+        Block block;
+
+        in >> block;
+        graph.blocks().push_back( block );
+      }
+      break;
+    }
+  }
+
+  while( !in.eof() )
+  {
+    getline( in , word );
+
+    if( word.find( "Nets : " ) != string::npos )
+    {
+      int netNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+
+      for( int i = 0 ; i < netNum ; ++i )
+      {
+        Net net;
+
+        in >> net;
+
+        for( Pin &pin : net.pins() )
+        {
+           Block *block = pin.connect();
+
+           pin.setConnect( graph.getBlock( block->name() ) );
+           delete block;
+        }
+        for( Path &path : net.paths() )
+        {
+           RoutingRegion *region = path.belongRegion();
+
+           path.setBelongRegion( graph.getRegion( region->name() ) );
+           delete region;
+        }
+        graph.nets().push_back( net );
+
+        getline( in , word );
+      }
+    }
+  }
+  return in;
 }
 
 
@@ -135,6 +266,16 @@ Block* RoutingGraph::getBlock( const string &name )
     if( block ) return block;
   }
   return RoutingRegion::getBlock( name );
+}
+
+RoutingRegion* RoutingGraph::getRegion( const string &name )
+{
+  if( this->name() == name ) return this;
+
+  for( Group &group : groups() )
+     if( group.name() == name ) return &group;
+
+  return nullptr;
 }
 
 Block RoutingGraph::operator=( const Block &block )

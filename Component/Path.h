@@ -2,34 +2,35 @@
 #define PATH_H
 
 #include <vector>
-#include <ostream>
+#include <iostream>
 using std::vector;
-using std::ostream;
 
 #include "../Graphic/Point.h"
 
-class Block;
+class RoutingRegion;
 
 class Path
 {
   public:
 
-    inline Block*         belongBlock () const;
+    inline RoutingRegion* belongRegion() const;
     inline vector<Point>& path        ();
 
-    inline void setBelongBlock( Block *block );
+    inline void setBelongRegion( RoutingRegion *region );
   
   private:
 
-    Block         *mBelongBlock = nullptr;
+    RoutingRegion *mBelongRegion = nullptr;
     vector<Point> mPath;
 };
 
-ostream& operator<<( ostream &out , Path &path );
+std::ostream& operator<<( std::ostream &out , Path &path );
+std::istream& operator>>( std::istream &in  , Path &path );
 
-inline Block*         Path::belongBlock () const  { return mBelongBlock; }
+inline RoutingRegion* Path::belongRegion() const  { return mBelongRegion; }
 inline vector<Point>& Path::path        ()        { return mPath; }
 
-inline void Path::setBelongBlock( Block *block ) { mBelongBlock  = block; }
+inline void Path::setBelongRegion( RoutingRegion *region )
+{ mBelongRegion = region; }
 
 #endif
