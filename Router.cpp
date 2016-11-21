@@ -167,7 +167,8 @@ bool Router::route()
         mRouter->saveNet( net );
         
         for( Path &path : net.paths() )
-           path.setBelongRegion( &group );
+           if( !path.belongRegion() )
+             path.setBelongRegion( &group );
      }
   }
 
@@ -180,7 +181,8 @@ bool Router::route()
      mRouter->saveNet( net );
 
      for( Path &path : net.paths() )
-        path.setBelongRegion( &graph );
+        if( !path.belongRegion() )
+          path.setBelongRegion( &graph );
   }
   return true;
 }

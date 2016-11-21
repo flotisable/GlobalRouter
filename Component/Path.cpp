@@ -1,7 +1,7 @@
 #include "Path.h"
 
 #include "../RoutingGraph/RoutingGraph.h"
-#include "pin.h"
+#include "Pin.h"
 
 std::ostream& operator<<( std::ostream &out , Path &path )
 {
