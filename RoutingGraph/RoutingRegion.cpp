@@ -6,9 +6,9 @@ using namespace std;
 
 #include "../Component/Pin.h"
 
-vector<Point> RoutingRegion::connectedPin( Net &net ) const
+vector<Point> RoutingRegion::connectedPin( const Net &net ) const
 {
-  vector<Point>           pins;
+  vector<Point> pins;
 
   for( const Pin &pin : net.pins() )
   {

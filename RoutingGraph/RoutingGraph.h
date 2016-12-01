@@ -21,6 +21,8 @@ class RoutingGraph : public RoutingRegion
 
     virtual vector<vector<Grid>>  gridMap   () const override;
     virtual void                  buildSplit() override;
+    
+    vector<Point> connectedPin( const Net &net ) const;
 
     virtual Block* getBlock ( const string &name ) const override;
     RoutingRegion* getRegion( const string &name ) const;

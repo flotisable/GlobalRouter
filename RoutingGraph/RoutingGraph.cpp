@@ -265,6 +265,48 @@ void RoutingGraph::buildSplit()
   mVsplit.shrink_to_fit();
 }
 
+vector<Point> RoutingGraph::connectedPin( const Net &net ) const
+{
+  vector<Point>         pins;
+  vector<const Group*>  groups;
+
+  for( const Pin &pin : net.pins() )
+  {
+     if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
+          ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
+     {
+       unsigned int x;
+       unsigned int y;
+
+       for( x = 0 ; x < mHsplit.size() ; ++x )
+          if( mHsplit[x] >= pin.x() )
+          {
+            --x;
+            break;
+          }
+       for( y = 0 ; y < mVsplit.size() ; ++y )
+          if( mVsplit[y] >= pin.y() )
+          {
+            --y;
+            break;
+          }
+       
+       for( const Group &belongGroup : this->groups() )
+          if( belongGroup.getBlock( pin.connect()->name() ) )
+          {
+            for( const Group *group : groups )
+               if( group == &belongGroup ) goto nextPin;
+            groups.push_back( &belongGroup );
+            pins.push_back( Point( x , y ) );
+            goto nextPin;
+          }
+       pins.push_back( Point( x , y ) );
+     }
+     nextPin: continue;
+  }
+  return pins;
+}
+
 Block* RoutingGraph::getBlock( const string &name ) const
 {
   for( const Group &group : groups() )
