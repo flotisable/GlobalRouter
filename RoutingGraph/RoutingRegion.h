@@ -16,29 +16,35 @@ class RoutingRegion : public Block
 
     virtual ~RoutingRegion() = default;
 
-    inline vector<double>&  hsplit();
-    inline vector<double>&  vsplit();
+    inline vector<double>&        hsplit();
+    inline const vector<double>&  hsplit() const;
+    inline vector<double>&        vsplit();
+    inline const vector<double>&  vsplit() const;
     inline vector<Block>&         blocks();
+    inline const vector<Block>&   blocks() const;
     
-    virtual vector<vector<Grid>>  gridMap() = 0;
-    vector<Point>                 connectedPin( Net &net );
+    virtual vector<vector<Grid>>  gridMap() const = 0;
+    vector<Point>                 connectedPin( Net &net ) const;
 
-    bool            netConnected( Net &net );
-    virtual Block*  getBlock    ( const string &name );
+    bool            netConnected( Net &net ) const;
+    virtual Block*  getBlock    ( const string &name ) const;
 
     virtual void  buildSplit() = 0;
     
   protected:
   
-    int getIndex( const vector<double> &array , double value );
+    int getIndex( const vector<double> &array , double value ) const;
 
     vector<double>  mHsplit;
     vector<double>  mVsplit;
     vector<Block>   mBlocks;
 };
 
-inline vector<double>&  RoutingRegion::hsplit() { return mHsplit; }
-inline vector<double>&  RoutingRegion::vsplit() { return mVsplit; }
-inline vector<Block>&   RoutingRegion::blocks() { return mBlocks; }
+inline vector<double>&        RoutingRegion::hsplit()       { return mHsplit; }
+inline const vector<double>&  RoutingRegion::hsplit() const { return mHsplit; }
+inline vector<double>&        RoutingRegion::vsplit()       { return mVsplit; }
+inline const vector<double>&  RoutingRegion::vsplit() const { return mVsplit; }
+inline vector<Block>&         RoutingRegion::blocks()       { return mBlocks; }
+inline const vector<Block>&   RoutingRegion::blocks() const { return mBlocks; }
 
 #endif

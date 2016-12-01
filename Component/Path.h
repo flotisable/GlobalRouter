@@ -13,8 +13,9 @@ class Path
 {
   public:
 
-    inline RoutingRegion* belongRegion() const;
-    inline vector<Point>& path        ();
+    inline RoutingRegion*       belongRegion() const;
+    inline vector<Point>&       path        ();
+    inline const vector<Point>& path        () const;
 
     inline void setBelongRegion( RoutingRegion *region );
   
@@ -24,11 +25,12 @@ class Path
     vector<Point> mPath;
 };
 
-std::ostream& operator<<( std::ostream &out , Path &path );
+std::ostream& operator<<( std::ostream &out , const Path &path );
 std::istream& operator>>( std::istream &in  , Path &path );
 
-inline RoutingRegion* Path::belongRegion() const  { return mBelongRegion; }
-inline vector<Point>& Path::path        ()        { return mPath; }
+inline RoutingRegion*       Path::belongRegion() const  { return mBelongRegion; }
+inline vector<Point>&       Path::path        ()        { return mPath; }
+inline const vector<Point>& Path::path        () const  { return mPath; }
 
 inline void Path::setBelongRegion( RoutingRegion *region )
 { mBelongRegion = region; }

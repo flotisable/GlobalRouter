@@ -6,9 +6,9 @@ using namespace std;
 
 #include "../Component/Pin.h"
 
-vector<Point> RoutingRegion::connectedPin( Net &net )
+vector<Point> RoutingRegion::connectedPin( Net &net ) const
 {
-  vector<Point> pins;
+  vector<Point>           pins;
 
   for( const Pin &pin : net.pins() )
   {
@@ -36,7 +36,7 @@ vector<Point> RoutingRegion::connectedPin( Net &net )
   return pins;
 }
 
-bool RoutingRegion::netConnected( Net &net )
+bool RoutingRegion::netConnected( Net &net ) const
 {
   for( const Pin &pin : net.pins() )
      if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
@@ -45,7 +45,7 @@ bool RoutingRegion::netConnected( Net &net )
   return false;
 }
 
-Block* RoutingRegion::getBlock( const string &name )
+Block* RoutingRegion::getBlock( const string &name ) const
 {
   auto it = find_if(  mBlocks.begin() , mBlocks.end() ,
                       [&]( const Block &block ) { return block.name() == name; } );
@@ -54,7 +54,7 @@ Block* RoutingRegion::getBlock( const string &name )
 }
 
 
-int RoutingRegion::getIndex( const vector<double> &array , double value )
+int RoutingRegion::getIndex( const vector<double> &array , double value ) const
 {
   for( int i = 0 ; i < static_cast<int>( array.size() ) ; ++i )
      if( array[i] == value ) return i;

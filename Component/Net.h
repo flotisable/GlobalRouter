@@ -17,10 +17,12 @@ class Net
     inline Net( const string &name = string() );
     inline Net( const string &name , int currentDensity );
 
-    inline const string&  name          () const;
-    inline int            currentDensity() const;
-    inline vector<Pin>&   pins          ();
-    inline vector<Path>&  paths         ();
+    inline const string&        name          () const;
+    inline int                  currentDensity() const;
+    inline vector<Pin>&         pins          ();
+    inline const vector<Pin>&   pins          () const;
+    inline vector<Path>&        paths         ();
+    inline const vector<Path>&  paths         () const;
 
     inline void setName          ( const string &name           );
     inline void setCurrentDensity( int          currentDensity  );
@@ -34,21 +36,23 @@ class Net
     vector<Path>  mPaths;
 };
 
-std::ostream& operator<<( std::ostream &out , Net &net );
-std::istream& operator>>( std::istream &in  , Net &net );
+std::ostream& operator<<( std::ostream &out , const Net &net );
+std::istream& operator>>( std::istream &in  , Net       &net );
 
 inline Net::Net( const string &name ) : mName( name ) {}
 inline Net::Net( const string &name , int currentDensity )
   : mName( name ) , mCurrentDensity( currentDensity ) {}
 
-inline const string&  Net::name          () const  { return mName;           }
-inline int            Net::currentDensity() const  { return mCurrentDensity; }
-inline vector<Pin>&   Net::pins          ()        { return mPins;           }
-inline vector<Path>&  Net::paths         ()        { return mPaths;          }
+inline const string&        Net::name           () const  { return mName;           }
+inline int                  Net::currentDensity () const  { return mCurrentDensity; }
+inline vector<Pin>&         Net::pins           ()        { return mPins;           }
+inline const vector<Pin>&   Net::pins           () const  { return mPins;           }
+inline vector<Path>&        Net::paths          ()        { return mPaths;          }
+inline const vector<Path>&  Net::paths          () const  { return mPaths;          }
 
 inline void Net::setName          ( const string  &name )
 { mName = name; }
-inline void Net::setCurrentDensity( int           currentDensity )
+inline void Net::setCurrentDensity( int currentDensity )
 { mCurrentDensity = currentDensity; }
 
 #endif

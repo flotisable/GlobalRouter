@@ -5,7 +5,7 @@
 #include <algorithm>
 using namespace std;
 
-ostream& operator<<( ostream &out , Group &group )
+ostream& operator<<( ostream &out , const Group &group )
 {
   out << "[ Group : " << group.name() << " ]\n";
 
@@ -33,7 +33,7 @@ ostream& operator<<( ostream &out , Group &group )
   out << endl;
 
   out << "Symmetrys : " << group.symmetrys().size() << endl;;
-  for( Symmetry& symmetry : group.symmetrys() ) out << symmetry << endl;
+  for( const Symmetry& symmetry : group.symmetrys() ) out << symmetry << endl;
   
   out << "Blocks : " << group.blocks().size() << endl;
   for( const Block& block : group.blocks() ) out << block << endl;
@@ -136,12 +136,12 @@ istream& operator>>( istream &in  , Group &group )
 }
 
 
-vector<vector<Grid>> Group::gridMap()
+vector<vector<Grid>> Group::gridMap() const
 {
   assert( mVsplit.size() > 0 && mHsplit.size() > 0 );
   vector<vector<Grid>> grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
 
-  for( Symmetry &symmetry : symmetrys() )
+  for( const Symmetry &symmetry : symmetrys() )
      for( const Block &block : symmetry.blocks() )
      {
         int xMin = getIndex( mHsplit , block.left  () );
@@ -185,15 +185,14 @@ vector<vector<Grid>> Group::gridMap()
   return grids;
 }
 
-Block* Group::getBlock( const string &name )
+Block* Group::getBlock( const string &name ) const
 {
-  for( Symmetry &symmetry : symmetrys() )
+  for( const Symmetry &symmetry : symmetrys() )
   {
      Block *block = symmetry.getBlock( name );
 
      if( block ) return block;
   }
-
   return RoutingRegion::getBlock( name );
 }
 
@@ -204,7 +203,7 @@ void Group::buildSplit()
   mVsplit.push_back( top    () );
   mVsplit.push_back( bottom () );
 
-  for( Symmetry &symmetry : symmetrys() )
+  for( const Symmetry &symmetry : symmetrys() )
      for( const Block &block : symmetry.blocks() )
      {
         mHsplit.push_back( block.left   () );

@@ -3,7 +3,7 @@
 #include "../RoutingGraph/RoutingGraph.h"
 #include "Pin.h"
 
-std::ostream& operator<<( std::ostream &out , Path &path )
+std::ostream& operator<<( std::ostream &out , const Path &path )
 {
   using std::endl;
   

@@ -1,6 +1,6 @@
 #include "Net.h"
 
-std::ostream& operator<<( std::ostream &out , Net &net )
+std::ostream& operator<<( std::ostream &out , const Net &net )
 {
   using std::endl;
 
@@ -10,7 +10,7 @@ std::ostream& operator<<( std::ostream &out , Net &net )
   for( const Pin &pin : net.pins() ) out << pin << " ";
   out << endl;
   
-  for( Path &path : net.paths() ) out << path << endl;
+  for( const Path &path : net.paths() ) out << path << endl;
 
   return out;
 }

@@ -5,7 +5,7 @@
 #include <string>
 using namespace std;
 
-ostream& operator<<( ostream &out , RoutingGraph &graph )
+ostream& operator<<( ostream &out , const RoutingGraph &graph )
 {
   out << "[ Graph ]\n";
   out << "Horizontal Split : " << graph.hsplit().size() << endl;
@@ -34,14 +34,14 @@ ostream& operator<<( ostream &out , RoutingGraph &graph )
   out << endl;
 
   out << "Groups : " << graph.groups().size() << endl;
-  for( Group &group : graph.groups() ) out << group << endl;
+  for( const Group &group : graph.groups() ) out << group << endl;
 
   out << "Blocks : " << graph.blocks().size() << endl;
   for( const Block &block : graph.blocks() ) out << block << endl;
   out << endl;
 
   out << "Nets : " << graph.nets().size() << endl;
-  for( Net &net : graph.nets() ) out << net << endl;
+  for( const Net &net : graph.nets() ) out << net << endl;
   out << endl;
   
   return out;
@@ -178,7 +178,7 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
 }
 
 
-vector<vector<Grid>> RoutingGraph::gridMap()
+vector<vector<Grid>> RoutingGraph::gridMap() const
 {
   assert( mVsplit.size() > 0 );
   assert( mHsplit.size() > 0 );
@@ -265,9 +265,9 @@ void RoutingGraph::buildSplit()
   mVsplit.shrink_to_fit();
 }
 
-Block* RoutingGraph::getBlock( const string &name )
+Block* RoutingGraph::getBlock( const string &name ) const
 {
-  for( Group &group : groups() )
+  for( const Group &group : groups() )
   {
     Block *block = group.getBlock( name );
 
@@ -276,17 +276,19 @@ Block* RoutingGraph::getBlock( const string &name )
   return RoutingRegion::getBlock( name );
 }
 
-RoutingRegion* RoutingGraph::getRegion( const string &name )
+RoutingRegion* RoutingGraph::getRegion( const string &name ) const
 {
-  if( this->name() == name ) return this;
+  if( this->name() == name )
+    return const_cast<RoutingRegion*>( static_cast<const RoutingRegion*>( this ) );
 
-  for( Group &group : groups() )
-     if( group.name() == name ) return &group;
+  for( const Group &group : groups() )
+     if( group.name() == name )
+       return const_cast<RoutingRegion*>( static_cast<const RoutingRegion*>( &group ) );
 
   return nullptr;
 }
 
-Block RoutingGraph::operator=( const Block &block )
+const Block& RoutingGraph::operator=( const Block &block )
 {
   setName       ( block.name      () );
   setHeight     ( block.height    () );

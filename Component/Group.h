@@ -13,10 +13,11 @@ class Group : public RoutingRegion
   public:
 
     inline vector<Symmetry>& symmetrys();
+    inline const vector<Symmetry>& symmetrys() const;
     
-    virtual vector<vector<Grid>> gridMap() override;
+    virtual vector<vector<Grid>> gridMap() const override;
     
-    virtual Block* getBlock( const string &name ) override;
+    virtual Block* getBlock( const string &name ) const override;
 
     virtual void buildSplit() override;
 
@@ -25,9 +26,10 @@ class Group : public RoutingRegion
     vector<Symmetry>  mSymmetrys;
 };
 
-std::ostream& operator<<( std::ostream &out , Group &group );
-std::istream& operator>>( std::istream &in  , Group &group );
+std::ostream& operator<<( std::ostream &out , const Group &group );
+std::istream& operator>>( std::istream &in  , Group       &group );
 
-inline vector<Symmetry>& Group::symmetrys() { return mSymmetrys; }
+inline vector<Symmetry>&        Group::symmetrys()        { return mSymmetrys; }
+inline const vector<Symmetry>&  Group::symmetrys() const  { return mSymmetrys; }
 
 #endif

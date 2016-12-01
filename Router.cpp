@@ -73,7 +73,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       }
       else // °»´ú Block ¬O§_ÄÝ©ó Group  find if block is contained in a group
       {
-        for( Group &group : graph.groups() )
+        for( const Group &group : graph.groups() )
         {
            Block* blockPtr = group.getBlock( block.name() );
 
@@ -187,7 +187,7 @@ bool Router::route()
   return true;
 }
 
-void Router::outputData( const string &fileName )
+void Router::outputData( const string &fileName ) const
 {
   ofstream file( fileName );
   

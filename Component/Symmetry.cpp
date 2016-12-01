@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-std::ostream& operator<<( std::ostream &out , Symmetry &symmetry )
+std::ostream& operator<<( std::ostream &out , const Symmetry &symmetry )
 {
   using std::endl;
 
@@ -42,7 +42,7 @@ std::istream& operator>>( std::istream &in  , Symmetry &symmetry )
 }
 
 
-Block* Symmetry::getBlock( const string &name )
+Block* Symmetry::getBlock( const string &name ) const
 {
   auto it = std::find_if( mBlocks.begin() , mBlocks.end() ,
                           [&]( const Block &block ) { return block.name() == name; } );

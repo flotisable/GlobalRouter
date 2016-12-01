@@ -25,7 +25,7 @@ class Router
     bool readNets ( const string &fileName );
     bool route    ();
     
-    void outputData( const string &fileName );
+    void outputData( const string &fileName ) const;
 
   private:
 
