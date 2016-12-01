@@ -186,18 +186,26 @@ vector<vector<Grid>> RoutingGraph::gridMap()
 
   for( const Group &group : groups() )
   {
-     int x = getIndex( mHsplit , group.left  () );
-     int y = getIndex( mVsplit , group.bottom() );
-
-     grids[y][x].setLabel( Grid::OBSTACLE );
+     int xMin = getIndex( mHsplit , group.left  () );
+     int xMax = getIndex( mHsplit , group.right () ) - 1;
+     int yMin = getIndex( mVsplit , group.bottom() );
+     int yMax = getIndex( mVsplit , group.top   () ) - 1;
+     
+     for( int i = yMin ; i <= yMax ; ++i )
+        for( int j = xMin ; j <= xMax ; ++j )
+           grids[i][j].setLabel( Grid::OBSTACLE );
   }
 
   for( const Block &block : mBlocks )
   {
-     int x = getIndex( mHsplit , block.left  () );
-     int y = getIndex( mVsplit , block.bottom() );
+     int xMin = getIndex( mHsplit , block.left  () );
+     int xMax = getIndex( mHsplit , block.right () ) - 1;
+     int yMin = getIndex( mVsplit , block.bottom() );
+     int yMax = getIndex( mVsplit , block.top   () ) - 1;
 
-     grids[y][x].setLabel( Grid::OBSTACLE );
+     for( int i = yMin ; i <= yMax ; ++i )
+        for( int j = xMin ; j <= xMax ; ++j )
+           grids[i][j].setLabel( Grid::OBSTACLE );
   }
 
   double maxH = 0;

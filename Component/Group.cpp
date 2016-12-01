@@ -144,18 +144,26 @@ vector<vector<Grid>> Group::gridMap()
   for( Symmetry &symmetry : symmetrys() )
      for( const Block &block : symmetry.blocks() )
      {
-        int x = getIndex( mHsplit , block.left  () );
-        int y = getIndex( mVsplit , block.bottom() );
+        int xMin = getIndex( mHsplit , block.left  () );
+        int xMax = getIndex( mHsplit , block.right () ) - 1;
+        int yMin = getIndex( mVsplit , block.bottom() );
+        int yMax = getIndex( mVsplit , block.top   () ) - 1;
 
-        grids[y][x].setLabel( Grid::OBSTACLE );
+        for( int i = yMin ; i <= yMax ; ++i )
+           for( int j = xMin ; j <= xMax ; ++j )
+              grids[i][j].setLabel( Grid::OBSTACLE );
      }
 
   for( const Block &block : blocks() )
   {
-     int x = getIndex( mHsplit , block.left  () );
-     int y = getIndex( mVsplit , block.bottom() );
+     int xMin = getIndex( mHsplit , block.left  () );
+     int xMax = getIndex( mHsplit , block.right () ) - 1;
+     int yMin = getIndex( mVsplit , block.bottom() );
+     int yMax = getIndex( mVsplit , block.top   () ) - 1;
 
-     grids[y][x].setLabel( Grid::OBSTACLE );
+     for( int i = yMin ; i <= yMax ; ++i )
+        for( int j = xMin ; j <= xMax ; ++j )
+           grids[i][j].setLabel( Grid::OBSTACLE );
   }
 
   double maxH = 0;

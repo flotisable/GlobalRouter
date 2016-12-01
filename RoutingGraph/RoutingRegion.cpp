@@ -30,7 +30,6 @@ vector<Point> RoutingRegion::connectedPin( Net &net )
             --y;
             break;
           }
-
        pins.push_back( Point( x , y ) );
      }
   }
