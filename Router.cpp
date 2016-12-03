@@ -73,7 +73,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       }
       else // °»´ú Block ¬O§_ÄÝ©ó Group  find if block is contained in a group
       {
-        for( const Group &group : graph.groups() )
+        for( Group &group : graph.groups() )
         {
            Block* blockPtr = group.getBlock( block.name() );
 

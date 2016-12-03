@@ -307,25 +307,60 @@ vector<Point> RoutingGraph::connectedPin( const Net &net ) const
   return pins;
 }
 
-Block* RoutingGraph::getBlock( const string &name ) const
+Block* RoutingGraph::getBlock( const string &name )
+{
+  for( Group &group : groups() )
+  {
+    Block *block = group.getBlock( name );
+    
+    if( block ) return block;
+  }
+  return RoutingRegion::getBlock( name );
+}
+
+const Block* RoutingGraph::getBlock( const string &name ) const
 {
   for( const Group &group : groups() )
   {
-    Block *block = group.getBlock( name );
+    const Block *block = group.getBlock( name );
 
     if( block ) return block;
   }
   return RoutingRegion::getBlock( name );
 }
 
-RoutingRegion* RoutingGraph::getRegion( const string &name ) const
+RoutingRegion* RoutingGraph::getRegion( const string &name )
 {
-  if( this->name() == name )
-    return const_cast<RoutingRegion*>( static_cast<const RoutingRegion*>( this ) );
+  if( this->name() == name ) return this;
+  
+  for( Group &group : groups() )
+     if( group.name() == name ) return &group;
+
+  return nullptr;
+}
+
+const RoutingRegion* RoutingGraph::getRegion( const string &name ) const
+{
+  if( this->name() == name ) return this;
 
   for( const Group &group : groups() )
-     if( group.name() == name )
-       return const_cast<RoutingRegion*>( static_cast<const RoutingRegion*>( &group ) );
+     if( group.name() == name ) return &group;
+
+  return nullptr;
+}
+
+Net* RoutingGraph::getNet( const string &name )
+{
+  for( Net &net : nets() )
+     if( net.name() == name ) return &net;
+
+  return nullptr;
+}
+
+const Net* RoutingGraph::getNet( const string &name ) const
+{
+  for( const Net &net : nets() )
+     if( net.name() == name ) return &net;
 
   return nullptr;
 }

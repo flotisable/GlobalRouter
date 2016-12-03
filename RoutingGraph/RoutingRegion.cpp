@@ -45,12 +45,20 @@ bool RoutingRegion::netConnected( Net &net ) const
   return false;
 }
 
-Block* RoutingRegion::getBlock( const string &name ) const
+Block* RoutingRegion::getBlock( const string &name )
 {
-  auto it = find_if(  mBlocks.begin() , mBlocks.end() ,
-                      [&]( const Block &block ) { return block.name() == name; } );
+  for( Block &block : blocks() )
+     if( block.name() == name ) return &block;
 
-  return ( it != mBlocks.end() ) ? const_cast<Block* const>( &( *it ) ) : nullptr;
+  return nullptr;
+}
+
+const Block* RoutingRegion::getBlock( const string &name ) const
+{
+  for( const Block &block : blocks() )
+     if( block.name() == name ) return &block;
+
+  return nullptr;
 }
 
 

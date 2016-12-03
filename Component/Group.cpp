@@ -185,11 +185,22 @@ vector<vector<Grid>> Group::gridMap() const
   return grids;
 }
 
-Block* Group::getBlock( const string &name ) const
+Block* Group::getBlock( const string &name )
+{
+  for( Symmetry &symmetry : symmetrys() )
+  {
+    Block *block = symmetry.getBlock( name );
+    
+    if( block ) return block;
+  }
+  return RoutingRegion::getBlock( name );
+}
+
+const Block* Group::getBlock( const string &name ) const
 {
   for( const Symmetry &symmetry : symmetrys() )
   {
-     Block *block = symmetry.getBlock( name );
+     const Block *block = symmetry.getBlock( name );
 
      if( block ) return block;
   }

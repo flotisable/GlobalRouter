@@ -17,7 +17,8 @@ class Group : public RoutingRegion
     
     virtual vector<vector<Grid>> gridMap() const override;
     
-    virtual Block* getBlock( const string &name ) const override;
+    virtual Block*        getBlock( const string &name ) override;
+    virtual const Block*  getBlock( const string &name ) const override;
 
     virtual void buildSplit() override;
 

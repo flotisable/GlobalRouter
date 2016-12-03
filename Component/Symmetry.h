@@ -21,7 +21,8 @@ class Symmetry
     
     inline void setName( const string &name );
     
-    Block* getBlock( const string &name ) const;
+    Block*        getBlock( const string &name );
+    const Block*  getBlock( const string &name ) const;
   
   private:
   

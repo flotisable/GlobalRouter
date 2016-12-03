@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <fstream>
 using namespace std;
 
 bool MazeRouter::route()
@@ -16,9 +17,9 @@ bool MazeRouter::route()
   for( const Point &pin : mPins )
   {
      Point target = pin;
-     
+
      cout << pin << endl;
-     
+
      if( source == target ) continue;
 
      if( findPath( source , target ) )
@@ -44,11 +45,22 @@ bool MazeRouter::route()
 
 bool MazeRouter::findPath( const Point &source , const Point &target )
 {
+  static bool first = true;
+  ofstream    file;
+  
+  if( first )
+  {
+    file.open( "routeProcess.txt" );
+    first = false;
+  }
+  else
+    file.open( "routeProcess.txt" , ios::out | ios::app );
+
   int           fanin       = 0;
   int           arrivedNum  = 0;
   int           label       = 0;
   queue<Point>  box;
-  
+
   if( target.x() + 1  != mGrids[0].size() &&
       mGrids[target.y()][target.x()+1].label() != Grid::OBSTACLE ) ++fanin;
   if( target.x() != 0 &&
@@ -59,7 +71,8 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
       mGrids[target.y()-1][target.x()].label() != Grid::OBSTACLE ) ++fanin;
 
   mGrids[source.y()][source.x()].setTag   ( tag );
-  mGrids[source.y()][source.x()].setLabel ( label );
+  if( mGrids[source.y()][source.x()].label() != Grid::OBSTACLE )
+    mGrids[source.y()][source.x()].setLabel ( label );
   mGrids[source.y()][source.x()].setCost  ( 0 );
   box.push( source );
   ++label;
@@ -101,7 +114,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
              if( x == 0 ) continue;
              --x;
              break;
-         
+
            default: break;
          }
        
@@ -110,19 +123,21 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
            ++arrivedNum;
            if( arrivedNum == fanin )
            {
+             file << target << source << endl;
              for( int i = static_cast<int>( mGrids.size() ) - 1 ; i >= 0 ; --i )
              {
                 for( const Grid &grid : mGrids[i] )
-                   cout << grid.tag();
-                cout << " ";
+                   file << setw( 2 ) << grid.tag();
+                file << " ";
                 for( const Grid &grid : mGrids[i] )
-                   cout << setw( 2 ) << grid.label();
-                cout << " ";
+                   file << setw( 2 ) << grid.label();
+                file << " ";
                 auto precision = cout.precision();
                 for( const Grid &grid : mGrids[i] )
-                   cout << setw( precision ) << grid.cost();
-                cout << endl;
+                   file << setw( precision ) << grid.cost();
+                file << endl;
              }
+             file << endl;
              return true;
            }
            continue;
@@ -256,6 +271,6 @@ vector<Point> MazeRouter::backTrace( const Point &source , const Point &target )
   path.push_back( source );
 
   cout << "trace success\n";
-  
+
   return path;
 }

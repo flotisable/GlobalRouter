@@ -26,8 +26,9 @@ class RoutingRegion : public Block
     virtual vector<vector<Grid>>  gridMap() const = 0;
     vector<Point>                 connectedPin( const Net &net ) const;
 
-    bool            netConnected( Net &net ) const;
-    virtual Block*  getBlock    ( const string &name ) const;
+    bool                  netConnected( Net &net ) const;
+    virtual Block*        getBlock    ( const string &name );
+    virtual const Block*  getBlock    ( const string &name ) const;
 
     virtual void  buildSplit() = 0;
     

@@ -24,8 +24,12 @@ class RoutingGraph : public RoutingRegion
     
     vector<Point> connectedPin( const Net &net ) const;
 
-    virtual Block* getBlock ( const string &name ) const override;
-    RoutingRegion* getRegion( const string &name ) const;
+    virtual Block*        getBlock  ( const string &name ) override;
+    virtual const Block*  getBlock  ( const string &name ) const override;
+    RoutingRegion*        getRegion ( const string &name );
+    const RoutingRegion*  getRegion ( const string &name ) const;
+    Net*                  getNet    ( const string &name );
+    const Net*            getNet    ( const string &name ) const;
     
     const Block& operator=( const Block &block );
   
