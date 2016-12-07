@@ -138,8 +138,7 @@ istream& operator>>( istream &in  , Group &group )
 
 vector<vector<Grid>> Group::gridMap() const
 {
-  assert( mVsplit.size() > 0 && mHsplit.size() > 0 );
-  vector<vector<Grid>> grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
+  vector<vector<Grid>> grids = RoutingRegion::gridMap();
 
   for( const Symmetry &symmetry : symmetrys() )
      for( const Block &block : symmetry.blocks() )
@@ -153,35 +152,6 @@ vector<vector<Grid>> Group::gridMap() const
            for( int j = xMin ; j <= xMax ; ++j )
               grids[i][j].setLabel( Grid::OBSTACLE );
      }
-
-  for( const Block &block : blocks() )
-  {
-     int xMin = getIndex( mHsplit , block.left  () );
-     int xMax = getIndex( mHsplit , block.right () ) - 1;
-     int yMin = getIndex( mVsplit , block.bottom() );
-     int yMax = getIndex( mVsplit , block.top   () ) - 1;
-
-     for( int i = yMin ; i <= yMax ; ++i )
-        for( int j = xMin ; j <= xMax ; ++j )
-           grids[i][j].setLabel( Grid::OBSTACLE );
-  }
-
-  double maxH = 0;
-  double maxV = 0;
-
-  for( unsigned int i = 0 ; i < mHsplit.size() - 1 ; ++i )
-     if( mHsplit[i+1] - mHsplit[i] > maxH ) maxH = mHsplit[i+1] - mHsplit[i];
-
-  for( unsigned int i = 0 ; i < mVsplit.size() - 1 ; ++i )
-     if( mVsplit[i+1] - mVsplit[i] > maxV ) maxV = mVsplit[i+1] - mVsplit[i];
-
-  for( unsigned int i = 0 ; i < grids.size() ; ++i )
-     for( unsigned int j = 0 ; j < grids[0].size() ; ++j )
-     {
-        grids[i][j].setCostX( maxH - ( mHsplit[j+1] - mHsplit[j] ) );
-        grids[i][j].setCostY( maxV - ( mVsplit[i+1] - mVsplit[i] ) );
-     }
-
   return grids;
 }
 

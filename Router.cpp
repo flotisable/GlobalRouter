@@ -154,35 +154,30 @@ bool Router::route()
 {
   if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return false;
 
-  for( Group &group : graph.groups() )
+  vector<RoutingRegion*> regions;
+
+  for( Group &group : graph.groups() ) regions.push_back( &group );
+  regions.push_back( &graph );
+
+  for( RoutingRegion *region : regions )
   {
-     mRouter->setGrids( group.gridMap() );
-     
+     cout << region->name() << endl;
+     mRouter->setGrids( region->gridMap() );
+     mRouter->setGridMax( region->maxGridWidth() , region->maxGridHeight() );
+
      for( Net &net : graph.nets() )
      {
-        if( !group.netConnected( net ) ) continue;
+        if( !region->netConnected( net ) ) continue;
 
-        mRouter->setPins( group.connectedPin( net ) );
+        cout << net.name() << endl;
+        mRouter->setPins( region->connectedPin( net ) );
         mRouter->route();
         mRouter->saveNet( net );
-        
+
         for( Path &path : net.paths() )
            if( !path.belongRegion() )
-             path.setBelongRegion( &group );
+             path.setBelongRegion( region );
      }
-  }
-
-  mRouter->setGrids( graph.gridMap() );
-
-  for( Net &net : graph.nets() )
-  {
-     mRouter->setPins( graph.connectedPin( net ) );
-     mRouter->route();
-     mRouter->saveNet( net );
-
-     for( Path &path : net.paths() )
-        if( !path.belongRegion() )
-          path.setBelongRegion( &graph );
   }
   return true;
 }

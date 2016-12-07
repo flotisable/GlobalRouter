@@ -23,7 +23,9 @@ class RoutingRegion : public Block
     inline vector<Block>&         blocks();
     inline const vector<Block>&   blocks() const;
     
-    virtual vector<vector<Grid>>  gridMap() const = 0;
+    virtual vector<vector<Grid>>  gridMap() const;
+    double                        maxGridWidth  () const;
+    double                        maxGridHeight () const;
     vector<Point>                 connectedPin( const Net &net ) const;
 
     bool                  netConnected( Net &net ) const;

@@ -5,8 +5,10 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-#include <fstream>
+#include <cfloat>
 using namespace std;
+
+const Point MazeRouter::nullPoint = Point( -1 , -1 );
 
 bool MazeRouter::route()
 {
@@ -45,35 +47,16 @@ bool MazeRouter::route()
 
 bool MazeRouter::findPath( const Point &source , const Point &target )
 {
-  static bool first = true;
-  ofstream    file;
-  
-  if( first )
-  {
-    file.open( "routeProcess.txt" );
-    first = false;
-  }
-  else
-    file.open( "routeProcess.txt" , ios::out | ios::app );
-
-  int           fanin       = 0;
+  int           fanin       = getFanin( target );
   int           arrivedNum  = 0;
   int           label       = 0;
   queue<Point>  box;
 
-  if( target.x() + 1  != mGrids[0].size() &&
-      mGrids[target.y()][target.x()+1].label() != Grid::OBSTACLE ) ++fanin;
-  if( target.x() != 0 &&
-      mGrids[target.y()][target.x()-1].label() != Grid::OBSTACLE ) ++fanin;
-  if( target.y() + 1 != mGrids.size() &&
-      mGrids[target.y()+1][target.x()].label() != Grid::OBSTACLE ) ++fanin;
-  if( target.y() != 0 &&
-      mGrids[target.y()-1][target.x()].label() != Grid::OBSTACLE ) ++fanin;
+  Grid &s = mGrids[source.y()][source.x()];
 
-  mGrids[source.y()][source.x()].setTag   ( tag );
-  if( mGrids[source.y()][source.x()].label() != Grid::OBSTACLE )
-    mGrids[source.y()][source.x()].setLabel ( label );
-  mGrids[source.y()][source.x()].setCost  ( 0 );
+  s.setTag( tag );
+  if( s.label() != Grid::OBSTACLE ) s.setLabel( label );
+  s.setCost( 0 );
   box.push( source );
   ++label;
   
@@ -85,83 +68,64 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
     {
       for( int direct = 0 ; direct < directNum ; ++direct )
       {
-         unsigned int x = box.front().x();
-         unsigned int y = box.front().y();
-         int cost       = mGrids[y][x].cost();
-    
-         switch( direct )
-         {
-           case up:
-         
-             if( y + 1 == mGrids.size() ) continue;
-             ++y;
-             break;
-         
-           case down:
-         
-             if( y == 0 ) continue;
-             --y;
-             break;
-         
-           case left:
-         
-             if( x + 1 == mGrids[0].size() ) continue;
-             ++x;
-             break;
-         
-           case right:
-         
-             if( x == 0 ) continue;
-             --x;
-             break;
+         Point  p     = box.front();
+         double cost  = mGrids[p.y()][p.x()].cost();
 
-           default: break;
-         }
-       
-         if( x == target.x() && y == target.y() )
+         p = move( p , static_cast<Direct>( direct ) );
+
+         if( p == nullPoint ) continue;
+
+         if( p == target )
          {
-           ++arrivedNum;
-           if( arrivedNum == fanin )
+           if( ++arrivedNum == fanin )
            {
-             file << target << source << endl;
+             cout << target << source << endl;
              for( int i = static_cast<int>( mGrids.size() ) - 1 ; i >= 0 ; --i )
              {
                 for( const Grid &grid : mGrids[i] )
-                   file << setw( 2 ) << grid.tag();
-                file << " ";
+                   cout << setw( 2 ) << grid.tag();
+                cout << " ";
                 for( const Grid &grid : mGrids[i] )
-                   file << setw( 2 ) << grid.label();
-                file << " ";
+                   cout << setw( 2 ) << grid.label();
+                cout << " ";
                 auto precision = cout.precision();
                 for( const Grid &grid : mGrids[i] )
-                   file << setw( precision ) << grid.cost();
-                file << endl;
+                   cout << setw( precision ) << grid.cost();
+                cout << endl;
              }
-             file << endl;
+             cout << endl;
              return true;
            }
            continue;
          }
 
-         if( mGrids[y][x].label() == Grid::OBSTACLE ) continue;
+         Grid &grid = mGrids[p.y()][p.x()];
 
-         cost +=  ( direct == up || direct == down ) ?
-                  mGrids[y][x].costY() : mGrids[y][x].costX();
+         if( grid.label() == Grid::OBSTACLE ) continue;
 
-         if( mGrids[y][x].tag() == tag )
+         if( direct == up || direct == down )
          {
-           if( cost < mGrids[y][x].cost() )
-           {
-             mGrids[y][x].setCost( cost );
-             box.push( Point( x , y ) );
-           }
+           if( grid.costX() >= gridMax.x() ) continue;
+           cost += grid.costX();
          }
          else
          {
-           mGrids[y][x].setTag   ( tag );
-           mGrids[y][x].setLabel ( label );
-           mGrids[y][x].setCost  ( cost );
-           box.push( Point( x , y ) );
+           if( grid.costY() >= gridMax.y() ) continue;
+           cost += grid.costY();
+         }
+
+         if( grid.tag() != tag )
+         {
+           grid.setTag  ( tag );
+           grid.setLabel( label );
+           grid.setCost ( cost );
+           box.push( p );
+
+         }
+         else if( cost < grid.cost() )
+         {
+           grid.setCost( cost );
+           box.push( p );
          }
       }
     }
@@ -172,105 +136,137 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
 
 vector<Point> MazeRouter::backTrace( const Point &source , const Point &target )
 {
-  enum MoveDirect
-  {
-    horizontal,
-    vertical,
-    unknown
-  };
-
   constexpr double wireWidth = 0.23;
 
-  int           x         = target.x();
-  int           y         = target.y();
-  int           cost      = INT_MAX;
+  Point         p         = target;
+  double        cost      = DBL_MAX;
   int           label     = INT_MAX;
   MoveDirect    direction = unknown;
   vector<Point> path;
 
   path.push_back( target );
   
-  while( x != source.x() || y != source.y() )
+  while( p != source )
   {
-    int xNext;
-    int yNext;
+    Point pNext;
 
+    // move
     for( int direct = 0 ; direct < directNum ; ++direct )
     {
-       unsigned int xT = x;
-       unsigned int yT = y;
-    
-       switch( direct )
+       Point pT = move( p , static_cast<Direct>( direct ) );
+
+       if( pT == nullPoint ) continue;
+
+       Grid &grid = mGrids[pT.y()][pT.x()];
+
+       if( grid.tag() != tag ) continue;
+
+       if( ( direct == up || direct == down ) )
        {
-         case up:
-
-           if( yT == mGrids.size() - 1 ) continue;
-           ++yT;
-           break;
-
-         case down:
-
-           if( yT == 0 ) continue;
-           --yT;
-           break;
-
-         case left:
-
-           if( xT == 0 ) continue;
-           --xT;
-           break;
-
-         case right:
-
-           
-           if( xT == mGrids[0].size() - 1 ) continue;
-           ++xT;
-           break;
-
-         default: break;
+         if( grid.costX() >= gridMax.x() ) continue;
        }
-       if( mGrids[yT][xT].tag() != tag ) continue;
-
-       if( mGrids[yT][xT].label() < label && mGrids[yT][xT].cost() <= cost )
+       else
        {
-         xNext  = xT;
-         yNext  = yT;
-         cost   = mGrids[yT][xT].cost();
+         if( grid.costY() >= gridMax.y() ) continue;
+       }
+
+       if( grid.label() < label && grid.cost() <= cost )
+       {
+         pNext  = pT;
+         cost   = grid.cost();
        }
     }
-    if( direction == unknown )
+    // end move
+
+    // set direction
+    switch( direction )
     {
-      if      ( x != xNext ) direction = horizontal;
-      else if ( y != yNext ) direction = vertical;
+      case unknown:
+
+        if      ( p.x() != pNext.x() ) direction = horizontal;
+        else if ( p.y() != pNext.y() ) direction = vertical;
+        break;
+
+      case vertical:
+
+        if( p.x() != pNext.x() )
+        {
+          direction = horizontal;
+          path.push_back( p );
+        }
+        break;
+
+      case horizontal:
+
+        if( p.y() != pNext.y() )
+        {
+          direction = vertical;
+          path.push_back( p );
+        }
+        break;
     }
-    else
-    {
-      if( x != xNext && direction == vertical )
-      {
-        direction = horizontal;
-        path.push_back( Point( x , y ) );
-      }
-      else if( y != yNext && direction == horizontal )
-      {
-        direction = vertical;
-        path.push_back( Point( x , y ) );
-      }
-    }
-    if      ( direction == horizontal )
-      mGrids[y][x].setCostX( mGrids[y][x].costX() + wireWidth );
-    else if ( direction == vertical )
-      mGrids[y][x].setCostY( mGrids[y][x].costY() + wireWidth );
-    x     = xNext;
-    y     = yNext;
-    label = mGrids[y][x].label();
+    // end set direction
+
+    Grid &grid = mGrids[p.y()][p.x()];
+
+    setGridCost( grid , direction , wireWidth );
+    p     = pNext;
+    label = grid.label();
   }
-  if      ( direction == horizontal )
-    mGrids[y][x].setCostX( mGrids[y][x].costX() + wireWidth );
-  else if ( direction == vertical )
-    mGrids[y][x].setCostY( mGrids[y][x].costY() + wireWidth );
+  setGridCost( mGrids[p.y()][p.x()] , direction , wireWidth );
   path.push_back( source );
 
   cout << "trace success\n";
 
   return path;
 }
+
+Point MazeRouter::move( const Point &point, MazeRouter::Direct direction )
+{
+  switch( direction )
+  {
+    case up:
+
+      if( point.y() != mGrids.size() - 1 ) return Point( point.x() , point.y() + 1 );
+      break;
+
+    case down:
+
+      if( point.y() != 0 ) return Point( point.x() , point.y() - 1 );
+      break;
+
+    case left:
+
+      if( point.x() != 0 ) return Point( point.x() - 1 , point.y() );
+      break;
+
+    case right:
+
+      if( point.x() != mGrids[0].size() - 1 ) return Point( point.x() + 1 , point.y() );
+      break;
+
+    default: break;
+  }
+  return nullPoint;
+}
+
+int MazeRouter::getFanin( const Point &point )
+{
+  int fanin = 0;
+
+  for( int direct = 0 ; direct < directNum ; ++direct )
+  {
+     Point p = move( point , static_cast<Direct>( direct ) );
+
+     if( p != nullPoint && mGrids[p.y()][p.x()].label() != Grid::OBSTACLE ) ++fanin;
+  }
+  return fanin;
+}
+
+void MazeRouter::setGridCost( Grid &grid, MazeRouter::MoveDirect direction ,
+                              double costDiff )
+{
+  if      ( direction == horizontal ) grid.setCostY( grid.costY() + costDiff );
+  else if ( direction == vertical   ) grid.setCostX( grid.costX() + costDiff );
+}
+
