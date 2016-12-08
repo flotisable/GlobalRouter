@@ -59,6 +59,8 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
   s.setCost( 0 );
   box.push( source );
   ++label;
+
+  region = mGrids[target.y()][target.x()].region();
   
   while( !box.empty() )
   {
@@ -101,7 +103,8 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
 
          Grid &grid = mGrids[p.y()][p.x()];
 
-         if( grid.label() == Grid::OBSTACLE ) continue;
+         if(  grid.label() == Grid::OBSTACLE &&
+              !( grid.region() && grid.region() == region ) ) continue;
 
          if( direct == up || direct == down )
          {
@@ -117,7 +120,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
          if( grid.tag() != tag )
          {
            grid.setTag  ( tag );
-           grid.setLabel( label );
+           if( grid.label() != Grid::OBSTACLE ) grid.setLabel( label );
            grid.setCost ( cost );
            box.push( p );
 
@@ -207,11 +210,13 @@ vector<Point> MazeRouter::backTrace( const Point &source , const Point &target )
     }
     // end set direction
 
+    setGridCost( mGrids[p.y()][p.x()] , direction , wireWidth );
+    p = pNext;
+
     Grid &grid = mGrids[p.y()][p.x()];
 
-    setGridCost( grid , direction , wireWidth );
-    p     = pNext;
-    label = grid.label();
+    if( grid.label() != Grid::OBSTACLE )  label = grid.label();
+    else                                  --label;
   }
   setGridCost( mGrids[p.y()][p.x()] , direction , wireWidth );
   path.push_back( source );
@@ -258,7 +263,14 @@ int MazeRouter::getFanin( const Point &point )
   {
      Point p = move( point , static_cast<Direct>( direct ) );
 
-     if( p != nullPoint && mGrids[p.y()][p.x()].label() != Grid::OBSTACLE ) ++fanin;
+     if( p != nullPoint )
+     {
+       Grid &grid = mGrids[p.y()][p.x()];
+
+       if(  grid.label() == Grid::OBSTACLE &&
+            !( grid.region() && grid.region() == region ) ) continue;
+       ++fanin;
+     }
   }
   return fanin;
 }

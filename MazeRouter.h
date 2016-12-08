@@ -9,6 +9,8 @@ using std::vector;
 #include "Component/Grid.h"
 #include "Component/Path.h"
 
+class RoutingRegion;
+
 class MazeRouter
 {
   public:
@@ -48,7 +50,8 @@ class MazeRouter
     int   getFanin( const Point &point );
     void  setGridCost( Grid &grid , MoveDirect direction , double costDiff );
 
-    int tag = 1;
+    const RoutingRegion *region = nullptr;
+    int                 tag     = 1;
 
     Point gridMax;
 

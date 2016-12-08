@@ -191,7 +191,10 @@ vector<vector<Grid>> RoutingGraph::gridMap() const
      
      for( int i = yMin ; i <= yMax ; ++i )
         for( int j = xMin ; j <= xMax ; ++j )
-           grids[yMin][xMin].setLabel( Grid::OBSTACLE );
+        {
+           grids[i][j].setLabel ( Grid::OBSTACLE );
+           grids[i][j].setRegion( &group );
+        }
   }
   return grids;
 }
