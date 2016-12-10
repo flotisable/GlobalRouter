@@ -1,6 +1,5 @@
 CPP      := g++
-CXXFLAGS := -std=c++11
-VPATH    := Graphic Component RoutingGraph
+CXXFLAGS := -std=c++03
 
 graphicDir      := Graphic/
 componentDir    := Component/
@@ -18,10 +17,10 @@ globalRouter : main.o Router.o MazeRouter.o ${graphicObj} ${componentObj} ${rout
 main.o : main.cpp Router.h MazeRouter.h
 	${CPP} ${CXXFLAGS} -o $@ -c $<
 
-Router.o : Router.cpp Router.h Component/Block.h MazeRouter.h RoutingGraph/RoutingGraph.h
+Router.o : Router.cpp Router.h ${componentDir}Block.h MazeRouter.h ${routingGraphDir}/RoutingGraph.h
 	${CPP} ${CXXFLAGS} -o $@ -c $<
 
-MazeRouter.o : MazeRouter.cpp MazeRouter.h Graphic/Point.h Component/Net.h Component/Grid.h Component/Path.h
+MazeRouter.o : MazeRouter.cpp MazeRouter.h ${graphicDir}/Point.h ${componentDir}/Net.h ${componentDir}/Grid.h ${componentDir}/Path.h
 	${CPP} ${CXXFLAGS} -o $@ -c $<
 
 ${graphicObj} :

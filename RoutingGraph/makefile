@@ -1,5 +1,5 @@
 CPP      := g++
-CXXFLAGS := -std=c++11
+CXXFLAGS := -std=c++03
 
 all : RoutingGraph.o RoutingRegion.o
 
