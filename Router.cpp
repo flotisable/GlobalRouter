@@ -171,7 +171,7 @@ bool Router::route()
 
         cout << net.name() << endl;
         mRouter->setPins( region->connectedPin( net ) );
-        mRouter->route();
+        if( !mRouter->route() ) return false;
         mRouter->saveNet( net );
 
         for( Path &path : net.paths() )

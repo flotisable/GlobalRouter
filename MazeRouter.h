@@ -27,18 +27,12 @@ class MazeRouter
 
     enum Direct
     {
+      unknown = -1,
       up,
       down,
       left,
       right,
       directNum
-    };
-
-    enum MoveDirect
-    {
-      horizontal,
-      vertical,
-      unknown
     };
 
     static const Point nullPoint;
@@ -48,7 +42,7 @@ class MazeRouter
 
     Point move( const Point &point , Direct direction );
     int   getFanin( const Point &point );
-    void  setGridCost( Grid &grid , MoveDirect direction , double costDiff );
+    void  setGridCost( Grid &grid , Direct direction , double costDiff );
 
     const RoutingRegion *region = nullptr;
     int                 tag     = 1;
