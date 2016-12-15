@@ -136,9 +136,9 @@ istream& operator>>( istream &in  , Group &group )
 }
 
 
-vector<vector<Grid>> Group::gridMap() const
+vector<vector<Grid>> Group::gridMap( int layer ) const
 {
-  vector<vector<Grid>> grids = RoutingRegion::gridMap();
+  vector<vector<Grid>> grids = RoutingRegion::gridMap( layer );
 
   for( const Symmetry &symmetry : symmetrys() )
      for( const Block &block : symmetry.blocks() )

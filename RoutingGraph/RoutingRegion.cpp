@@ -6,10 +6,11 @@ using namespace std;
 
 #include "../Component/Pin.h"
 
-vector<vector<Grid>> RoutingRegion::gridMap() const
+vector<vector<Grid>> RoutingRegion::gridMap( int layer ) const
 {
   assert( mVsplit.size() > 0 && mHsplit.size() > 0 );
-  vector<vector<Grid>> grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
+  vector<vector<Grid>> grids( mVsplit.size() - 1 ,
+                              vector<Grid>( mHsplit.size() - 1 , Grid( layer ) ) );
 
   for( const Block &block : mBlocks )
   {
@@ -29,10 +30,13 @@ vector<vector<Grid>> RoutingRegion::gridMap() const
   for( unsigned int i = 0 ; i < grids.size() ; ++i )
      for( unsigned int j = 0 ; j < grids[0].size() ; ++j )
      {
-        grids[i][j].setCostTop    ( maxH - ( mHsplit[j+1] - mHsplit[j] ) );
-        grids[i][j].setCostBottom ( maxH - ( mHsplit[j+1] - mHsplit[j] ) );
-        grids[i][j].setCostLeft   ( maxV - ( mVsplit[i+1] - mVsplit[i] ) );
-        grids[i][j].setCostRight  ( maxV - ( mVsplit[i+1] - mVsplit[i] ) );
+        for( int k = 0 ; k < layer ; ++k )
+        {
+           grids[i][j].setCostTop    ( maxH - ( mHsplit[j+1] - mHsplit[j] ) , k );
+           grids[i][j].setCostBottom ( maxH - ( mHsplit[j+1] - mHsplit[j] ) , k );
+           grids[i][j].setCostLeft   ( maxV - ( mVsplit[i+1] - mVsplit[i] ) , k );
+           grids[i][j].setCostRight  ( maxV - ( mVsplit[i+1] - mVsplit[i] ) , k );
+        }
      }
 
   return grids;

@@ -9,17 +9,18 @@ using std::string;
 #include "RoutingGraph/RoutingGraph.h"
 #include "MazeRouter.h"
 
-using RoutingEngine = MazeRouter;
-
 class Router
 {
   public:
+
+    using RoutingEngine = MazeRouter;
 
     inline Router( RoutingEngine* router = nullptr );
 
     inline RoutingEngine* router() const;
 
-    inline void setRouter( RoutingEngine* router );
+    inline void setRouter   ( RoutingEngine*  router    );
+    inline void setMaxLayer ( int             maxLayer  );
 
     bool readBlock( const string &fileName , const string &groupFileName );
     bool readNets ( const string &fileName );
@@ -33,13 +34,15 @@ class Router
 
     RoutingEngine *mRouter;
 
-    RoutingGraph graph;
+    RoutingGraph  graph;
+    int           maxLayer = 0;
 };
 
 inline Router::Router( RoutingEngine* router ) : mRouter( router ) {}
 
-inline RoutingEngine* Router::router() const { return mRouter; }
+inline Router::RoutingEngine* Router::router() const { return mRouter; }
 
-inline void Router::setRouter( RoutingEngine* router ) { mRouter = router; }
+inline void Router::setRouter   ( RoutingEngine*  router    ) { mRouter         = router;   }
+inline void Router::setMaxLayer ( int             maxLayer  ) { this->maxLayer  = maxLayer; }
 
 #endif

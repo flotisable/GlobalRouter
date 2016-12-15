@@ -19,7 +19,7 @@ class RoutingGraph : public RoutingRegion
     inline vector<Group>&       groups();
     inline const vector<Group>& groups() const;
 
-    virtual vector<vector<Grid>>  gridMap   () const override;
+    virtual vector<vector<Grid>>  gridMap   ( int layer = 1 ) const override;
     virtual void                  buildSplit() override;
     
     virtual vector<Point> connectedPin( const Net &net ) const override;
@@ -32,7 +32,7 @@ class RoutingGraph : public RoutingRegion
     const Net*            getNet    ( const string &name ) const;
     
     const Block& operator=( const Block &block );
-  
+
   private:
   
     vector<Net>   mNets;

@@ -5,7 +5,7 @@ using namespace std;
 #include "MazeRouter.h"
 #include "Router.h"
 
-#define FLOTISABLE_WIN10
+#define FLOTISABLE_LINUX
 
 int main()
 {

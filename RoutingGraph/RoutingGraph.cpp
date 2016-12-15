@@ -178,9 +178,9 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
 }
 
 
-vector<vector<Grid>> RoutingGraph::gridMap() const
+vector<vector<Grid>> RoutingGraph::gridMap( int layer ) const
 {
-  vector<vector<Grid>> grids = RoutingRegion::gridMap();
+  vector<vector<Grid>> grids = RoutingRegion::gridMap( layer );
 
   for( const Group &group : groups() )
   {
