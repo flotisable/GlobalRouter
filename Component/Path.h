@@ -13,6 +13,8 @@ class Path
 {
   public:
 
+    inline explicit Path( int layer = 0 );
+
     inline RoutingRegion*       belongRegion() const;
     inline vector<Point>&       path        ();
     inline const vector<Point>& path        () const;
@@ -25,11 +27,13 @@ class Path
 
     RoutingRegion *mBelongRegion = nullptr;
     vector<Point> mPath;
-    int           mLayer = 0;
+    int           mLayer;
 };
 
 std::ostream& operator<<( std::ostream &out , const Path &path );
 std::istream& operator>>( std::istream &in  , Path &path );
+
+inline Path::Path( int layer ) : mLayer( layer ) {}
 
 inline RoutingRegion*       Path::belongRegion() const  { return mBelongRegion; }
 inline vector<Point>&       Path::path        ()        { return mPath; }

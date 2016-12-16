@@ -36,16 +36,20 @@ class MazeRouter
       directNum
     };
 
-    static const Point  nullPoint;
-    const double        wireWidthMin = 0.23;
+    static const Point      nullPoint;
+    static constexpr double nullCostDiff  = -1.0;
+    const double            wireWidthMin  = 0.23;
 
-    bool          findPath ( const Point &source , const Point &target );
-    vector<Path>  backTrace( const Point &source , const Point &target );
+    bool          findPath    ( const Point &source , const Point &target );
+    vector<Path>  backTrace   ( const Point &source , const Point &target );
+    void          insertPath  ( const Path  &path );
+    void          uniquePaths ();
 
-    void  initSource  ( const Point &source );
-    Point move        ( const Point &point , Direct direction );
-    int   getFanin    ( const Point &point );
-    void  setGridCost ( Grid &grid , int layer , Direct direction , double costDiff );
+    void    initSource  ( const Point &source );
+    Point   move        ( const Point &point , Direct direction );
+    int     getFanin    ( const Point &point );
+    double  getCostDiff ( const Point &movedPoint , int layer , Direct direction );
+    void    setGridCost ( Grid &grid , int layer , Direct direction , double costDiff );
 
     void output( const Point &source , const Point &target );
 

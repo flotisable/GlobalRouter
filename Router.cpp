@@ -162,22 +162,30 @@ bool Router::route()
   for( RoutingRegion *region : regions )
   {
      cout << region->name() << endl;
-     mRouter->setGrids( region->gridMap() );
-     mRouter->setGridMax( region->maxGridWidth() , region->maxGridHeight() );
 
-     for( Net &net : graph.nets() )
+     for( int layer = 0 ; layer <= maxLayer ; ++layer )
      {
-        if( !region->netConnected( net ) ) continue;
+        mRouter->setMaxLayer( layer );
+        mRouter->setGrids( region->gridMap( layer + 1 ) );
+        mRouter->setGridMax( region->maxGridWidth() , region->maxGridHeight() );
 
-        cout << net.name() << endl;
-        mRouter->setPins( region->connectedPin( net ) );
-        if( !mRouter->route() ) return false;
-        mRouter->saveNet( net );
+        for( Net &net : graph.nets() )
+        {
+           if( !region->netConnected( net ) ) continue;
 
-        for( Path &path : net.paths() )
-           if( !path.belongRegion() )
-             path.setBelongRegion( region );
+           cout << net.name() << endl;
+           mRouter->setPins( region->connectedPin( net ) );
+           if( !mRouter->route() ) goto nextLayer;
+           mRouter->saveNet( net );
+
+           for( Path &path : net.paths() )
+              if( !path.belongRegion() ) path.setBelongRegion( region );
+        }
+        goto pass;
+        nextLayer: continue;
      }
+     return false;
+     pass: continue;
   }
   return true;
 }
