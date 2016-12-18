@@ -14,7 +14,7 @@ class RoutingRegion : public Block
 {
   public:
 
-    virtual ~RoutingRegion() = default;
+    virtual ~RoutingRegion() {}
 
     inline vector<double>&        hsplit();
     inline const vector<double>&  hsplit() const;
@@ -23,7 +23,7 @@ class RoutingRegion : public Block
     inline vector<Block>&         blocks();
     inline const vector<Block>&   blocks() const;
     
-    virtual vector<vector<Grid>>  gridMap() const = 0;
+    virtual vector<vector<Grid> > gridMap() const = 0;
     vector<Point>                 connectedPin( const Net &net ) const;
 
     bool                  netConnected( Net &net ) const;

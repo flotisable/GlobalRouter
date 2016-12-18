@@ -19,13 +19,13 @@ class RoutingGraph : public RoutingRegion
     inline vector<Group>&       groups();
     inline const vector<Group>& groups() const;
 
-    virtual vector<vector<Grid>>  gridMap   () const override;
-    virtual void                  buildSplit() override;
+    virtual vector<vector<Grid> > gridMap   () const;
+    virtual void                  buildSplit();
     
     vector<Point> connectedPin( const Net &net ) const;
 
-    virtual Block*        getBlock  ( const string &name ) override;
-    virtual const Block*  getBlock  ( const string &name ) const override;
+    virtual Block*        getBlock  ( const string &name );
+    virtual const Block*  getBlock  ( const string &name ) const;
     RoutingRegion*        getRegion ( const string &name );
     const RoutingRegion*  getRegion ( const string &name ) const;
     Net*                  getNet    ( const string &name );
