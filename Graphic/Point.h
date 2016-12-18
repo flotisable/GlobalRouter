@@ -8,7 +8,7 @@ class Point
 {
   public:
 
-    Point() = default;
+    inline Point();
     inline Point( double x , double y );
 
     inline double x() const;
@@ -41,6 +41,8 @@ inline double manhattanDistance( const Point &a , const Point &b )
 // end Point non-member function
 
 // Point inline member funcion
+inline Point::Point() {}
+
 inline Point::Point( double x , double y ) { set( x , y ); }
 
 inline double Point::x() const { return mX; }

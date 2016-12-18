@@ -9,7 +9,7 @@ class Rectangle
 {
   public:
 
-    Rectangle() = default;
+    inline Rectangle();
     inline Rectangle( double lbX , double lbY , double h , double w );
     inline Rectangle( const Point &lb         , double h , double w );
 
@@ -54,8 +54,10 @@ std::ostream& operator<<( std::ostream &out , const Rectangle &rect );
 // end Rectangle non-member function
 
 // Rectangle inline member function
+inline Rectangle::Rectangle() {}
+
 inline Rectangle::Rectangle(  double lbX  , double lbY , double h , double w )
-  : Rectangle( Point( lbX , lbY ) , h , w ) {}
+  : lb( lbX , lbY ) , rt( lbX + w , lbY + h ) {}
 inline Rectangle::Rectangle( const Point &lb , double h , double w )
   : lb( lb ) , rt( lb.x() + w , lb.y() + h ) {}
 
