@@ -30,7 +30,14 @@ class Router
 
   private:
 
+    const double unit = 1; // 0.01u
+
     bool readGroup( const string &fileName );
+
+    vector<RoutingRegion*>  getRegions();
+    void                    initRouter( const RoutingRegion *region , int maxLayer );
+    bool                    netRouted ( const Net &net , const RoutingRegion *region );
+    void                    saveNet   ( Net &net , RoutingRegion *region );
 
     RoutingEngine *mRouter;
 

@@ -10,8 +10,6 @@ using namespace std;
 
 bool Router::readBlock( const string &fileName , const string &groupFileName )
 {
-  constexpr double unit = 0.01; // 0.01u
-
   ifstream  file( fileName );
   int       groupIndex = 0;
 
@@ -69,7 +67,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
         graph.groups()[groupIndex].setHeight    ( height * unit );
         graph.groups()[groupIndex].setWidth     ( width * unit );
         
-        groupIndex++;
+        ++groupIndex;
       }
       else // °»´ú Block ¬O§_ÄÝ©ó Group  find if block is contained in a group
       {
@@ -87,7 +85,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       }
     }
     match:
-    
+
     while( file.get() != '\n' )
       if( file.eof() ) break;
   }
@@ -98,8 +96,6 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
 
 bool Router::readNets( const string &fileName )
 {
-  constexpr double unit = 0.01;
-
   ifstream  file( fileName );
   string    word;
   
@@ -154,38 +150,29 @@ bool Router::route()
 {
   if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return false;
 
-  vector<RoutingRegion*> regions;
-
-  for( Group &group : graph.groups() ) regions.push_back( &group );
-  regions.push_back( &graph );
-
-  for( RoutingRegion *region : regions )
+  for( RoutingRegion *region : getRegions() )
   {
+     int layer;
+
      cout << region->name() << endl;
 
-     for( int layer = 0 ; layer <= maxLayer ; ++layer )
+     for( layer = 0 ; layer <= maxLayer ; ++layer )
      {
-        mRouter->setMaxLayer( layer );
-        mRouter->setGrids( region->gridMap( layer + 1 ) );
-        mRouter->setGridMax( region->maxGridWidth() , region->maxGridHeight() );
+        initRouter( region , layer );
 
         for( Net &net : graph.nets() )
         {
-           if( !region->netConnected( net ) ) continue;
+           if( netRouted( net , region ) || !region->netConnected( net ) ) continue;
 
            cout << net.name() << endl;
            mRouter->setPins( region->connectedPin( net ) );
            if( !mRouter->route() ) goto nextLayer;
-           mRouter->saveNet( net );
-
-           for( Path &path : net.paths() )
-              if( !path.belongRegion() ) path.setBelongRegion( region );
+           saveNet( net , region );
         }
-        goto pass;
+        break;
         nextLayer: continue;
      }
-     return false;
-     pass: continue;
+     if( layer > maxLayer ) return false;
   }
   return true;
 }
@@ -219,14 +206,13 @@ bool Router::readGroup( const string &fileName )
       Symmetry symmetry;
 
       file >> word;
-      
-      if( word[0] != 'S' )  continue;
-      else                  symmetry.setName( word );
-      file >> word; // pass one word
 
+      if( word[0] != 'S' )  continue;
+      symmetry.setName( word );
+      file >> word; // pass one word
       file >> word; symmetry.blocks().push_back( Block( word ) );
       file >> word; symmetry.blocks().push_back( Block( word ) );
-      
+
       symmetrys.push_back( symmetry );
     }
     else if ( word == "Group" )
@@ -237,7 +223,7 @@ bool Router::readGroup( const string &fileName )
       file >> word;
       
       if( word[0] != 'G' )  continue;
-      else                  group.setName( word );
+      group.setName( word );
       
       file >> blockNum >> word; // pass one word
       
@@ -258,4 +244,36 @@ bool Router::readGroup( const string &fileName )
     }
   }
   return true;
+}
+
+vector<RoutingRegion*> Router::getRegions()
+{
+  vector<RoutingRegion*> regions;
+
+  for( Group &group : graph.groups() ) regions.push_back( &group );
+  regions.push_back( &graph );
+
+  return regions;
+}
+
+void Router::initRouter( const RoutingRegion *region, int maxLayer )
+{
+  mRouter->setMaxLayer( maxLayer );
+  mRouter->setGrids   ( region->gridMap( 1 + maxLayer ) );
+  mRouter->setGridMax ( region->maxGridWidth() , region->maxGridHeight() );
+}
+
+bool Router::netRouted( const Net &net , const RoutingRegion *region )
+{
+  for( const Path &path : net.paths() )
+     if( path.belongRegion() == region ) return true;
+  return false;
+}
+
+void Router::saveNet( Net &net , RoutingRegion *region )
+{
+  mRouter->saveNet( net );
+
+  for( Path &path : net.paths() )
+     if( !path.belongRegion() ) path.setBelongRegion( region );
 }

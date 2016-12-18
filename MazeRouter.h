@@ -49,6 +49,7 @@ class MazeRouter
     Point   move        ( const Point &point , Direct direction );
     int     getFanin    ( const Point &point );
     double  getCostDiff ( const Point &movedPoint , int layer , Direct direction );
+    Direct  getDirect   ( const Point &p , const Point &movedP );
     void    setGridCost ( Grid &grid , int layer , Direct direction , double costDiff );
 
     void output( const Point &source , const Point &target );
