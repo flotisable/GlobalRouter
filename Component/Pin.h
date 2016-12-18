@@ -10,7 +10,7 @@ class Pin : public Point
 {
   public:
   
-    inline Pin( Block* const connect = nullptr );
+    inline Pin( Block* const connect = NULL );
     inline Pin( Block* const connect , double x , double y );
     inline Pin( Block* const connect , const Point &p );
     

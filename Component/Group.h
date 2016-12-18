@@ -15,12 +15,12 @@ class Group : public RoutingRegion
     inline vector<Symmetry>& symmetrys();
     inline const vector<Symmetry>& symmetrys() const;
     
-    virtual vector<vector<Grid>> gridMap() const override;
+    virtual vector<vector<Grid> > gridMap() const;
     
-    virtual Block*        getBlock( const string &name ) override;
-    virtual const Block*  getBlock( const string &name ) const override;
+    virtual Block*        getBlock( const string &name );
+    virtual const Block*  getBlock( const string &name ) const;
 
-    virtual void buildSplit() override;
+    virtual void buildSplit();
 
   private:
 

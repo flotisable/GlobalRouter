@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cassert>
 #include <algorithm>
+#include <cstdlib>
 using namespace std;
 
 ostream& operator<<( ostream &out , const Group &group )
@@ -10,19 +11,21 @@ ostream& operator<<( ostream &out , const Group &group )
   out << "[ Group : " << group.name() << " ]\n";
 
   out << "Horizontal Split : " << group.hsplit().size() << endl;
-  for( double point : group.hsplit() ) out << point << endl;
+  for( unsigned int i = 0 ; i < group.hsplit().size() ; ++i )
+     out << group.hsplit()[i] << endl;
   out << endl;
   
   out << "Vertical Split : " << group.vsplit().size() << endl;
-  for( double point : group.vsplit() ) out << point << endl;
+  for( unsigned int i = 0 ; i < group.vsplit().size() ; ++i )
+     out << group.vsplit()[i] << endl;
   out << endl;
   
   out << "Grids :\n";
-  vector<vector<Grid>> grids = group.gridMap();
+  vector<vector<Grid> > grids = group.gridMap();
   for( int i = static_cast<int>( grids.size() ) - 1 ; i >=0 ; --i )
   {
-     for( const Grid &grid : grids[i] )
-        switch( grid.label() )
+     for( unsigned j = 0 ; j < grids[i].size() ; ++j )
+        switch( grids[i][j].label() )
         {
           case Grid::SPACE:     out << "0"; break;
           case Grid::OBSTACLE:  out << "1"; break;
@@ -33,10 +36,12 @@ ostream& operator<<( ostream &out , const Group &group )
   out << endl;
 
   out << "Symmetrys : " << group.symmetrys().size() << endl;;
-  for( const Symmetry& symmetry : group.symmetrys() ) out << symmetry << endl;
+  for( unsigned int i = 0 ; i < group.symmetrys().size() ; ++i )
+     out << group.symmetrys()[i] << endl;
   
   out << "Blocks : " << group.blocks().size() << endl;
-  for( const Block& block : group.blocks() ) out << block << endl;
+  for( unsigned int i = 0 ; i < group.blocks().size() ; ++i )
+     out << group.blocks()[i] << endl;
 
   return out;
 }
@@ -51,12 +56,12 @@ istream& operator>>( istream &in  , Group &group )
 
     if( word.find( "Horizontal Split : " ) != string::npos )
     {
-      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      int splitNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
 
       for( int i = 0 ; i < splitNum ; ++i )
       {
         getline( in , word );
-        group.hsplit().push_back( stod( word ) );
+        group.hsplit().push_back( atof( word.data() ) );
       }
       group.setLeft  ( group.hsplit().front () );
       group.setRight ( group.hsplit().back  () );
@@ -70,12 +75,12 @@ istream& operator>>( istream &in  , Group &group )
 
     if( word.find( "Vertical Split : " ) != string::npos )
     {
-      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      int splitNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
 
       for( int i = 0 ; i < splitNum ; ++i )
       {
         getline( in , word );
-        group.vsplit().push_back( stod( word ) );
+        group.vsplit().push_back( atof( word.data() ) );
       }
       group.setBottom( group.vsplit().front () );
       group.setTop   ( group.vsplit().back  () );
@@ -89,7 +94,7 @@ istream& operator>>( istream &in  , Group &group )
 
     if( word.find( "Symmetrys : " ) != string::npos )
     {
-      int SymmetryNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      int SymmetryNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
 
       for( int i = 0 ; !in.eof() && i < SymmetryNum ; )
       {
@@ -119,7 +124,7 @@ istream& operator>>( istream &in  , Group &group )
 
     if( word.find( "Blocks : " ) != string::npos )
     {
-      int blockNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      int blockNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
 
       for( int i = 0 ; i < blockNum ; ++i )
       {
@@ -136,14 +141,16 @@ istream& operator>>( istream &in  , Group &group )
 }
 
 
-vector<vector<Grid>> Group::gridMap() const
+vector<vector<Grid> > Group::gridMap() const
 {
   assert( mVsplit.size() > 0 && mHsplit.size() > 0 );
-  vector<vector<Grid>> grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
+  vector<vector<Grid> > grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
 
-  for( const Symmetry &symmetry : symmetrys() )
-     for( const Block &block : symmetry.blocks() )
+  for( unsigned int i = 0 ; i < symmetrys().size() ; ++i )
+     for( unsigned int j = 0 ; j < symmetrys()[i].blocks().size() ; ++j )
      {
+        const Block &block = symmetrys()[i].blocks()[j];
+
         int xMin = getIndex( mHsplit , block.left  () );
         int xMax = getIndex( mHsplit , block.right () ) - 1;
         int yMin = getIndex( mVsplit , block.bottom() );
@@ -154,12 +161,12 @@ vector<vector<Grid>> Group::gridMap() const
               grids[i][j].setLabel( Grid::OBSTACLE );
      }
 
-  for( const Block &block : blocks() )
+  for( unsigned int i = 0 ; i < blocks().size() ; ++i )
   {
-     int xMin = getIndex( mHsplit , block.left  () );
-     int xMax = getIndex( mHsplit , block.right () ) - 1;
-     int yMin = getIndex( mVsplit , block.bottom() );
-     int yMax = getIndex( mVsplit , block.top   () ) - 1;
+     int xMin = getIndex( mHsplit , blocks()[i].left  () );
+     int xMax = getIndex( mHsplit , blocks()[i].right () ) - 1;
+     int yMin = getIndex( mVsplit , blocks()[i].bottom() );
+     int yMax = getIndex( mVsplit , blocks()[i].top   () ) - 1;
 
      for( int i = yMin ; i <= yMax ; ++i )
         for( int j = xMin ; j <= xMax ; ++j )
@@ -187,9 +194,9 @@ vector<vector<Grid>> Group::gridMap() const
 
 Block* Group::getBlock( const string &name )
 {
-  for( Symmetry &symmetry : symmetrys() )
+  for( unsigned int i = 0 ; i < symmetrys().size() ; ++i )
   {
-    Block *block = symmetry.getBlock( name );
+    Block *block = symmetrys()[i].getBlock( name );
     
     if( block ) return block;
   }
@@ -198,9 +205,9 @@ Block* Group::getBlock( const string &name )
 
 const Block* Group::getBlock( const string &name ) const
 {
-  for( const Symmetry &symmetry : symmetrys() )
+  for( unsigned int i = 0 ; i < symmetrys().size() ; ++i )
   {
-     const Block *block = symmetry.getBlock( name );
+     const Block *block = symmetrys()[i].getBlock( name );
 
      if( block ) return block;
   }
@@ -214,33 +221,33 @@ void Group::buildSplit()
   mVsplit.push_back( top    () );
   mVsplit.push_back( bottom () );
 
-  for( const Symmetry &symmetry : symmetrys() )
-     for( const Block &block : symmetry.blocks() )
+  for( unsigned int i = 0 ; i < symmetrys().size() ; ++i )
+     for( unsigned int j = 0 ; j < symmetrys()[i].blocks().size() ; ++j )
      {
+        const Block &block = symmetrys()[i].blocks()[j];
+
         mHsplit.push_back( block.left   () );
         mHsplit.push_back( block.right  () );
         mVsplit.push_back( block.top    () );
         mVsplit.push_back( block.bottom () );
      }
 
-  for( const Block &block : blocks() )
+  for( unsigned int i = 0 ; i < blocks().size() ; ++i )
   {
-     mHsplit.push_back( block.left   () );
-     mHsplit.push_back( block.right  () );
-     mVsplit.push_back( block.top    () );
-     mVsplit.push_back( block.bottom () );
+     mHsplit.push_back( blocks()[i].left   () );
+     mHsplit.push_back( blocks()[i].right  () );
+     mVsplit.push_back( blocks()[i].top    () );
+     mVsplit.push_back( blocks()[i].bottom () );
   }
 
   sort( mHsplit.begin() , mHsplit.end() );
   sort( mVsplit.begin() , mVsplit.end() );
 
-  auto it = unique( mHsplit.begin() , mHsplit.end() );
+  vector<double>::iterator it = unique( mHsplit.begin() , mHsplit.end() );
 
   mHsplit.resize( distance( mHsplit.begin() , it ) );
-  mHsplit.shrink_to_fit();
 
   it = unique( mVsplit.begin() , mVsplit.end() );
 
   mVsplit.resize( distance( mVsplit.begin() , it ) );
-  mVsplit.shrink_to_fit();
 }

@@ -1,5 +1,8 @@
 #include "Symmetry.h"
 
+#include <cstdlib>
+using namespace std;
+
 std::ostream& operator<<( std::ostream &out , const Symmetry &symmetry )
 {
   using std::endl;
@@ -7,7 +10,8 @@ std::ostream& operator<<( std::ostream &out , const Symmetry &symmetry )
   out << "[ Symmetry : " << symmetry.name() << " ]\n";
 
   out << "Blocks : " << symmetry.blocks().size() << endl;
-  for( const Block &block : symmetry.blocks() ) out << block << endl;
+  for( unsigned int i = 0 ; i < symmetry.blocks().size() ; ++i )
+     out << symmetry.blocks()[i] << endl;
 
   return out;
 }
@@ -24,7 +28,7 @@ std::istream& operator>>( std::istream &in  , Symmetry &symmetry )
 
     if( word.find( "Blocks : " ) != string::npos )
     {
-      int blockNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      int blockNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
 
       for( int i = 0 ; i < blockNum ; ++i )
       {
@@ -42,16 +46,16 @@ std::istream& operator>>( std::istream &in  , Symmetry &symmetry )
 
 Block* Symmetry::getBlock( const string &name )
 {
-  for( Block &block : blocks() )
-     if( block.name() == name ) return &block;
+  for( unsigned int i = 0 ; i < blocks().size() ; ++i )
+     if( blocks()[i].name() == name ) return &blocks()[i];
 
-  return nullptr;
+  return NULL;
 }
 
 const Block* Symmetry::getBlock( const string &name ) const
 {
-  for( const Block &block : blocks() )
-     if( block.name() == name ) return &block;
+  for( unsigned int i = 0 ; i < blocks().size() ; ++i )
+     if( blocks()[i].name() == name ) return &blocks()[i];
 
-  return nullptr;
+  return NULL;
 }

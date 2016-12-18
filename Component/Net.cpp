@@ -7,10 +7,12 @@ std::ostream& operator<<( std::ostream &out , const Net &net )
   out << net.name() << " " << net.currentDensity() << " "
       << net.pins().size() << " "<< net.paths().size() << endl;
   
-  for( const Pin &pin : net.pins() ) out << pin << " ";
+  for( unsigned int i = 0 ; i < net.pins().size() ; ++i )
+     out << net.pins()[i] << " ";
   out << endl;
   
-  for( const Path &path : net.paths() ) out << path << endl;
+  for( unsigned int i = 0 ; i < net.paths().size() ; ++i )
+     out << net.paths()[i] << endl;
 
   return out;
 }

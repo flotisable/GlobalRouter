@@ -9,7 +9,8 @@ std::ostream& operator<<( std::ostream &out , const Path &path )
   
   out << path.belongRegion()->name() << " " << path.path().size() << " ";
   
-  for( const Point &p : path.path() ) out << p << " ";
+  for( unsigned int i = 0 ; i < path.path().size() ; ++i )
+     out << path.path()[i] << " ";
 
   return out;
 }
