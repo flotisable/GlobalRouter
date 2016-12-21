@@ -160,14 +160,14 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
 
         in >> net;
 
-        for( int i = 0 ; i < net.pins().size() ; ++i )
+        for( unsigned int i = 0 ; i < net.pins().size() ; ++i )
         {
            Block *block = net.pins()[i].connect();
 
            net.pins()[i].setConnect( graph.getBlock( block->name() ) );
            delete block;
         }
-        for( int i = 0 ; i < net.paths().size() ; ++i )
+        for( unsigned int i = 0 ; i < net.paths().size() ; ++i )
         {
            RoutingRegion *region = net.paths()[i].belongRegion();
 
@@ -184,11 +184,9 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
 }
 
 
-vector<vector<Grid> > RoutingGraph::gridMap() const
+vector<vector<Grid> > RoutingGraph::gridMap( int layer ) const
 {
-  assert( mVsplit.size() > 0 );
-  assert( mHsplit.size() > 0 );
-  vector<vector<Grid> > grids( mVsplit.size() - 1 , vector<Grid>( mHsplit.size() - 1 ) );
+  vector<vector<Grid> > grids = RoutingRegion::gridMap( layer );
 
   for( unsigned int i = 0 ; i < groups().size() ; ++i )
   {
@@ -197,39 +195,13 @@ vector<vector<Grid> > RoutingGraph::gridMap() const
      int yMin = getIndex( mVsplit , groups()[i].bottom() );
      int yMax = getIndex( mVsplit , groups()[i].top   () ) - 1;
      
-     for( int i = yMin ; i <= yMax ; ++i )
-        for( int j = xMin ; j <= xMax ; ++j )
-           grids[i][j].setLabel( Grid::OBSTACLE );
+     for( int j = yMin ; j <= yMax ; ++j )
+        for( int k = xMin ; k <= xMax ; ++k )
+        {
+           grids[j][k].setLabel ( Grid::OBSTACLE );
+           grids[j][k].setBlock ( &groups()[i] );
+        }
   }
-
-  for( unsigned int i = 0 ; i < mBlocks.size() ; ++i )
-  {
-     int xMin = getIndex( mHsplit , mBlocks[i].left  () );
-     int xMax = getIndex( mHsplit , mBlocks[i].right () ) - 1;
-     int yMin = getIndex( mVsplit , mBlocks[i].bottom() );
-     int yMax = getIndex( mVsplit , mBlocks[i].top   () ) - 1;
-
-     for( int i = yMin ; i <= yMax ; ++i )
-        for( int j = xMin ; j <= xMax ; ++j )
-           grids[i][j].setLabel( Grid::OBSTACLE );
-  }
-
-  double maxH = 0;
-  double maxV = 0;
-
-  for( unsigned int i = 0 ; i < mHsplit.size() - 1 ; ++i )
-     if( mHsplit[i+1] - mHsplit[i] > maxH ) maxH = mHsplit[i+1] - mHsplit[i];
-
-  for( unsigned int i = 0 ; i < mVsplit.size() - 1 ; ++i )
-     if( mVsplit[i+1] - mVsplit[i] > maxV ) maxV = mVsplit[i+1] - mVsplit[i];
-
-  for( unsigned int i = 0 ; i < grids.size() ; ++i )
-     for( unsigned int j = 0 ; j < grids[0].size() ; ++j )
-     {
-        grids[i][j].setCostX( maxH - ( mHsplit[j+1] - mHsplit[j] ) );
-        grids[i][j].setCostY( maxV - ( mVsplit[i+1] - mVsplit[i] ) );
-     }
-
   return grids;
 }
 

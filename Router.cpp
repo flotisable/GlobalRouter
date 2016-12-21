@@ -4,15 +4,14 @@
 #include <string>
 #include <cctype>
 #include <iostream>
+#include <cstdlib>
 using namespace std;
 
 #include "Component/Block.h"
 
 bool Router::readBlock( const string &fileName , const string &groupFileName )
 {
-  constexpr double unit = 0.01; // 0.01u
-
-  ifstream  file( fileName );
+  ifstream  file( fileName.data() );
   int       groupIndex = 0;
 
   if( !readGroup( groupFileName ) ) return false;
@@ -69,13 +68,13 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
         graph.groups()[groupIndex].setHeight    ( height * unit );
         graph.groups()[groupIndex].setWidth     ( width * unit );
         
-        groupIndex++;
+        ++groupIndex;
       }
       else // °»´ú Block ¬O§_ÄÝ©ó Group  find if block is contained in a group
       {
-        for( Group &group : graph.groups() )
+        for( unsigned int i = 0 ; i < graph.groups().size() ; ++i )
         {
-           Block* blockPtr = group.getBlock( block.name() );
+           Block* blockPtr = graph.groups()[i].getBlock( block.name() );
 
            if( blockPtr )
            {
@@ -87,7 +86,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       }
     }
     match:
-    
+
     while( file.get() != '\n' )
       if( file.eof() ) break;
   }
@@ -98,9 +97,7 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
 
 bool Router::readNets( const string &fileName )
 {
-  constexpr double unit = 0.01;
-
-  ifstream  file( fileName );
+  ifstream  file( fileName.data() );
   string    word;
   
   if( !file.is_open() )
@@ -154,42 +151,40 @@ bool Router::route()
 {
   if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return false;
 
-  for( Group &group : graph.groups() )
+  vector<RoutingRegion*> regions = getRegions();
+
+  for( unsigned int i = 0 ; i < regions.size() ; ++i )
   {
-     mRouter->setGrids( group.gridMap() );
-     
-     for( Net &net : graph.nets() )
+     int layer;
+
+     cout << regions[i]->name() << endl;
+
+     for( layer = 0 ; layer <= maxLayer ; ++layer )
      {
-        if( !group.netConnected( net ) ) continue;
+        initRouter( regions[i] , layer );
 
-        mRouter->setPins( group.connectedPin( net ) );
-        mRouter->route();
-        mRouter->saveNet( net );
-        
-        for( Path &path : net.paths() )
-           if( !path.belongRegion() )
-             path.setBelongRegion( &group );
+        for( unsigned int j = 0 ; j < graph.nets().size() ; ++j )
+        {
+           Net &net = graph.nets()[j];
+
+           if( /*netRouted( net , region ) ||*/ !regions[i]->netConnected( net ) ) continue;
+
+           cout << net.name() << endl;
+           mRouter->setPins( regions[i]->connectedPin( net ) );
+           if( !mRouter->route() ) goto nextLayer;
+           saveNet( net , regions[i] );
+        }
+        break;
+        nextLayer: continue;
      }
-  }
-
-  mRouter->setGrids( graph.gridMap() );
-
-  for( Net &net : graph.nets() )
-  {
-     mRouter->setPins( graph.connectedPin( net ) );
-     mRouter->route();
-     mRouter->saveNet( net );
-
-     for( Path &path : net.paths() )
-        if( !path.belongRegion() )
-          path.setBelongRegion( &graph );
+     if( layer > maxLayer ) return false;
   }
   return true;
 }
 
 void Router::outputData( const string &fileName ) const
 {
-  ofstream file( fileName );
+  ofstream file( fileName.data() );
   
   file << graph;
 }
@@ -197,7 +192,7 @@ void Router::outputData( const string &fileName ) const
 
 bool Router::readGroup( const string &fileName )
 {
-  ifstream          file( fileName );
+  ifstream          file( fileName.data() );
   string            word;
   vector<Symmetry>  symmetrys;
 
@@ -216,14 +211,13 @@ bool Router::readGroup( const string &fileName )
       Symmetry symmetry;
 
       file >> word;
-      
-      if( word[0] != 'S' )  continue;
-      else                  symmetry.setName( word );
-      file >> word; // pass one word
 
+      if( word[0] != 'S' )  continue;
+      symmetry.setName( word );
+      file >> word; // pass one word
       file >> word; symmetry.blocks().push_back( Block( word ) );
       file >> word; symmetry.blocks().push_back( Block( word ) );
-      
+
       symmetrys.push_back( symmetry );
     }
     else if ( word == "Group" )
@@ -234,7 +228,7 @@ bool Router::readGroup( const string &fileName )
       file >> word;
       
       if( word[0] != 'G' )  continue;
-      else                  group.setName( word );
+      group.setName( word );
       
       file >> blockNum >> word; // pass one word
       
@@ -244,7 +238,7 @@ bool Router::readGroup( const string &fileName )
          
          if( word[0] == 'S' )
          {
-           int index = stoi( word.substr( 1 ) ) - 1;
+           int index = atoi( word.substr( 1 ).data() ) - 1;
            
            group.symmetrys().push_back( symmetrys[index] );
          }
@@ -255,4 +249,37 @@ bool Router::readGroup( const string &fileName )
     }
   }
   return true;
+}
+
+vector<RoutingRegion*> Router::getRegions()
+{
+  vector<RoutingRegion*> regions;
+
+  for( unsigned int i = 0 ; i < graph.groups().size() ; ++i )
+     regions.push_back( &graph.groups()[i] );
+  regions.push_back( &graph );
+
+  return regions;
+}
+
+void Router::initRouter( const RoutingRegion *region, int maxLayer )
+{
+  mRouter->setMaxLayer( maxLayer );
+  mRouter->setGrids   ( region->gridMap( 1 + maxLayer ) );
+  mRouter->setGridMax ( region->maxGridWidth() , region->maxGridHeight() );
+}
+
+bool Router::netRouted( const Net &net , const RoutingRegion *region )
+{
+  for( unsigned int i = 0 ; i < net.paths().size() ; ++i )
+     if( net.paths()[i].belongRegion() == region ) return true;
+  return false;
+}
+
+void Router::saveNet( Net &net , RoutingRegion *region )
+{
+  mRouter->saveNet( net );
+
+  for( unsigned int i = 0 ; i < net.paths().size() ; ++i )
+     if( !net.paths()[i].belongRegion() ) net.paths()[i].setBelongRegion( region );
 }

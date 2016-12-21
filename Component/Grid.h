@@ -1,9 +1,15 @@
 #ifndef GRID_H
 #define GRID_H
 
+#include <vector>
+
+class Block;
+
 class Grid
 {
   public:
+
+    typedef double CostType;
 
     enum Label
     {
@@ -11,44 +17,83 @@ class Grid
       OBSTACLE
     };
 
-    inline Grid(  int tag = 0 , int label = SPACE ,
-                  double cost = 0 , double costX = 0 , double costY = 0 );
+    inline explicit Grid( int layer = 1 );
 
-    inline int    tag   () const;
-    inline int    label () const;
-    inline double cost  () const;
-    inline double costX () const;
-    inline double costY () const;
+    inline const Block* block     () const;
+    inline int          tag       () const;
+    inline int          label     () const;
+    inline int          layer     () const;
+    inline CostType     cost      () const;
+    inline CostType     costTop   ( int layer = 0 ) const;
+    inline CostType     costBottom( int layer = 0 ) const;
+    inline CostType     costLeft  ( int layer = 0 ) const;
+    inline CostType     costRight ( int layer = 0 ) const;
 
-    inline void setTag  ( int tag     );
-    inline void setLabel( int label   );
-    inline void setCost ( double cost );
-    inline void setCostX( double cost );
-    inline void setCostY( double cost );
+    inline void setBlock      ( const Block *block );
+    inline void setTag        ( int tag       );
+    inline void setLabel      ( int label     );
+    inline void setLayer      ( int layer     );
+    inline void setCost       ( CostType cost );
+    inline void setCostTop    ( CostType cost , int layer = 0 );
+    inline void setCostBottom ( CostType cost , int layer = 0 );
+    inline void setCostLeft   ( CostType cost , int layer = 0 );
+    inline void setCostRight  ( CostType cost , int layer = 0 );
 
   private:
 
-    int mTag;      // use to distinguish net
-    int mLabel;    // use to distinguish step
+    struct BoundaryCost
+    {
+      CostType top;
+      CostType bottom;
+      CostType left;
+      CostType right;
 
-    double mCost;
-    double mCostX;
-    double mCostY;
+      inline explicit BoundaryCost();
+    };
+
+    const Block *mBlock;
+
+    int       mTag;   // use to distinguish net
+    int       mLabel; // use to distinguish step
+    int       mLayer;
+    CostType  mCost;
+
+    std::vector<BoundaryCost> boundaryCost;
 };
 
-inline Grid::Grid( int tag , int label , double cost , double costX , double costY )
-  : mTag( tag ) , mLabel( label ) , mCost( cost ) , mCostX( costX ) , mCostY( costY ) {}
+inline Grid::Grid( int layer ) :  mBlock( NULL ) , mTag( 0 ) , mLabel( Grid::SPACE ) ,
+                                  mLayer( 0 ) , mCost( 0 )
+{ boundaryCost.resize( layer ); }
 
-inline int    Grid::tag   () const { return mTag;   }
-inline int    Grid::label () const { return mLabel; }
-inline double Grid::cost  () const { return mCost;  }
-inline double Grid::costX () const { return mCostX; }
-inline double Grid::costY () const { return mCostY; }
+inline const Block*   Grid::block     () const { return mBlock;  }
+inline int            Grid::tag       () const { return mTag;     }
+inline int            Grid::label     () const { return mLabel;   }
+inline int            Grid::layer     () const { return mLayer;   }
+inline Grid::CostType Grid::cost      () const { return mCost;    }
+inline Grid::CostType Grid::costTop   ( int layer ) const
+{ return boundaryCost[layer].top; }
+inline Grid::CostType Grid::costBottom( int layer ) const
+{ return boundaryCost[layer].bottom;  }
+inline Grid::CostType Grid::costLeft  ( int layer ) const
+{ return boundaryCost[layer].left;    }
+inline Grid::CostType Grid::costRight ( int layer ) const
+{ return boundaryCost[layer].right;   }
 
-inline void Grid::setTag  ( int tag     ) { mTag    = tag;    }
-inline void Grid::setLabel( int label   ) { mLabel  = label;  }
-inline void Grid::setCost ( double cost ) { mCost   = cost;   }
-inline void Grid::setCostX( double cost ) { mCostX  = cost;   }
-inline void Grid::setCostY( double cost ) { mCostY  = cost;   }
+inline void Grid::setBlock      ( const Block *block )  { mBlock  = block;  }
+inline void Grid::setTag        ( int tag   )           { mTag    = tag;    }
+inline void Grid::setLabel      ( int label )           { mLabel  = label;  }
+inline void Grid::setLayer      ( int layer )           { mLayer  = layer;  }
+inline void Grid::setCost       ( CostType cost )       { mCost   = cost;   }
+inline void Grid::setCostTop    ( CostType cost , int layer )
+{ boundaryCost[layer].top = cost; }
+inline void Grid::setCostBottom ( CostType cost , int layer )
+{ boundaryCost[layer].bottom = cost; }
+inline void Grid::setCostLeft   ( CostType cost , int layer )
+{ boundaryCost[layer].left = cost; }
+inline void Grid::setCostRight  ( CostType cost , int layer )
+{ boundaryCost[layer].right = cost; }
+
+
+Grid::BoundaryCost::BoundaryCost() : top( 0 ) , bottom( 0 ) , left( 0 ) , right( 0 ) {}
 
 #endif

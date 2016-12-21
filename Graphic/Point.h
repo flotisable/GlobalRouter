@@ -37,7 +37,7 @@ std::ostream& operator<<( std::ostream &out , const Point &point );
 std::istream& operator>>( std::istream &in  , Point       &point );
 
 inline double manhattanDistance( const Point &a , const Point &b )
-{ return ( abs( a.x() - b.x() ) + abs( a.y() - b.y() ) ); }
+{ return ( std::abs( a.x() - b.x() ) + std::abs( a.y() - b.y() ) ); }
 // end Point non-member function
 
 // Point inline member funcion

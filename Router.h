@@ -9,17 +9,18 @@ using std::string;
 #include "RoutingGraph/RoutingGraph.h"
 #include "MazeRouter.h"
 
-using RoutingEngine = MazeRouter;
-
 class Router
 {
   public:
 
-    inline Router( RoutingEngine* router = nullptr );
+    typedef MazeRouter RoutingEngine;
+
+    inline Router( RoutingEngine* router = NULL );
 
     inline RoutingEngine* router() const;
 
-    inline void setRouter( RoutingEngine* router );
+    inline void setRouter   ( RoutingEngine*  router    );
+    inline void setMaxLayer ( int             maxLayer  );
 
     bool readBlock( const string &fileName , const string &groupFileName );
     bool readNets ( const string &fileName );
@@ -29,17 +30,27 @@ class Router
 
   private:
 
+    const double unit; // unit u
+
     bool readGroup( const string &fileName );
+
+    vector<RoutingRegion*>  getRegions();
+    void                    initRouter( const RoutingRegion *region , int maxLayer );
+    bool                    netRouted ( const Net &net , const RoutingRegion *region );
+    void                    saveNet   ( Net &net , RoutingRegion *region );
 
     RoutingEngine *mRouter;
 
-    RoutingGraph graph;
+    RoutingGraph  graph;
+    int           maxLayer;
 };
 
-inline Router::Router( RoutingEngine* router ) : mRouter( router ) {}
+inline Router::Router( RoutingEngine* router )
+  : unit( 0.01 ) , mRouter( router ) , maxLayer( 0 ) {}
 
-inline RoutingEngine* Router::router() const { return mRouter; }
+inline Router::RoutingEngine* Router::router() const { return mRouter; }
 
-inline void Router::setRouter( RoutingEngine* router ) { mRouter = router; }
+inline void Router::setRouter   ( RoutingEngine*  router    ) { mRouter         = router;   }
+inline void Router::setMaxLayer ( int             maxLayer  ) { this->maxLayer  = maxLayer; }
 
 #endif
