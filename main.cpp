@@ -5,7 +5,7 @@ using namespace std;
 #include "MazeRouter.h"
 #include "Router.h"
 
-#define FLOTISABLE_LINUX
+#define COLLAGE_PROJECT_SERVER
 
 int main()
 {
@@ -19,9 +19,15 @@ int main()
   const string displayPath  = dirPath + "display_info/";
   const string twoStagePath = dirPath + "two_stage_fullnets/";
 #else
+#ifdef COLLAGE_PROJECT_SERVER
+  const string dirPath      = "/edahome/102501547/Program/TwoStageFullnets/";
+  const string displayPath  = dirPath + "display_info/";
+  const string twoStagePath = dirPath;
+#else
   const string dirPath      = "";
   const string displayPath  = dirPath + "";
   const string twoStagePath = dirPath + "";
+#endif
 #endif
 #endif
 

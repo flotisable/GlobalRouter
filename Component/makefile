@@ -1,5 +1,5 @@
 CPP      := g++
-CXXFLAGS := -std=c++03
+CXXFLAGS := -std=c++98
 
 all : Block.o Group.o Net.o Path.o Pin.o Symmetry.o
 
