@@ -317,10 +317,10 @@ void MazeRouter::setGridCost( Grid &grid , int layer , MazeRouter::Direct direct
 {
   switch( direction )
   {
-    case up:    grid.setCostTop   ( grid.costTop    () + costDiff , layer ); break;
-    case down:  grid.setCostBottom( grid.costBottom () + costDiff , layer ); break;
-    case left:  grid.setCostLeft  ( grid.costLeft   () + costDiff , layer ); break;
-    case right: grid.setCostRight ( grid.costRight  () + costDiff , layer ); break;
+    case up:    grid.setCostTop   ( grid.costTop    ( layer ) + costDiff , layer ); break;
+    case down:  grid.setCostBottom( grid.costBottom ( layer ) + costDiff , layer ); break;
+    case left:  grid.setCostLeft  ( grid.costLeft   ( layer ) + costDiff , layer ); break;
+    case right: grid.setCostRight ( grid.costRight  ( layer ) + costDiff , layer ); break;
     default: break;
   }
 }
@@ -337,6 +337,8 @@ void MazeRouter::output( const Point &source, const Point &target )
      for( const Grid &grid : mGrids[i] ) cout << setw( 2 ) << grid.label();
      cout << " ";
      for( const Grid &grid : mGrids[i] ) cout << setw( precision ) << grid.cost();
+     cout << " ";
+     for( const Grid &grid : mGrids[i] ) cout << setw( 2 ) << grid.layer();
      cout << endl;
   }
   cout << endl;

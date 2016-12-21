@@ -7,7 +7,7 @@ std::ostream& operator<<( std::ostream &out , const Path &path )
 {
   using std::endl;
   
-  out << path.belongRegion()->name() /*<< " " << path.layer()*/ << " "
+  out << path.belongRegion()->name() << " " << path.layer() << " "
       << path.path().size() << " ";
   
   for( const Point &p : path.path() ) out << p << " ";
@@ -19,12 +19,14 @@ std::istream& operator>>( std::istream &in  , Path &path )
 {
   RoutingRegion *region = new RoutingGraph;
   string        name;
+  int           pathLayer;
   int           pathNum;
 
-  in >> name >> pathNum;
+  in >> name >> pathLayer >> pathNum;
 
   region->setName( name );
   
+  path.setLayer( pathLayer );
   path.setBelongRegion( region );
 
   for( int i = 0 ; i < pathNum ; ++i )

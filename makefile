@@ -37,4 +37,4 @@ clean :
 	${MAKE} -C ${graphicDir} clean
 	${MAKE} -C ${componentDir} clean
 	${MAKE} -C ${routingGraphDir} clean
-	rm *.o main
+	rm *.o globalRouter
