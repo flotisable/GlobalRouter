@@ -9,7 +9,7 @@ using std::vector;
 #include "Component/Grid.h"
 #include "Component/Path.h"
 
-class RoutingRegion;
+class Block;
 
 class MazeRouter
 {
@@ -40,6 +40,7 @@ class MazeRouter
     static constexpr double nullCostDiff  = -1.0;
     const double            wireWidthMin  = 0.23;
 
+    Point         movePin     ( const Point &source , const Point &target );
     bool          findPath    ( const Point &source , const Point &target );
     vector<Path>  backTrace   ( const Point &source , const Point &target );
     void          insertPath  ( const Path  &path );
@@ -54,9 +55,9 @@ class MazeRouter
 
     void output( const Point &source , const Point &target );
 
-    const RoutingRegion *region   = nullptr;
-    int                 tag       = 1;
-    int                 maxLayer  = 0;
+    const Block *block    = nullptr;
+    int         tag       = 1;
+    int         maxLayer  = 0;
 
     Point gridMax;
 

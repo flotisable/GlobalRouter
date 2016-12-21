@@ -30,7 +30,7 @@ class Router
 
   private:
 
-    const double unit = 1; // 0.01u
+    const double unit = 0.01; // 0.01u
 
     bool readGroup( const string &fileName );
 

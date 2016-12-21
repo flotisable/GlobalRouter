@@ -7,7 +7,8 @@ std::ostream& operator<<( std::ostream &out , const Path &path )
 {
   using std::endl;
   
-  out << path.belongRegion()->name() << " " << path.path().size() << " ";
+  out << path.belongRegion()->name() /*<< " " << path.layer()*/ << " "
+      << path.path().size() << " ";
   
   for( const Point &p : path.path() ) out << p << " ";
 

@@ -162,7 +162,7 @@ bool Router::route()
 
         for( Net &net : graph.nets() )
         {
-           if( netRouted( net , region ) || !region->netConnected( net ) ) continue;
+           if( /*netRouted( net , region ) ||*/ !region->netConnected( net ) ) continue;
 
            cout << net.name() << endl;
            mRouter->setPins( region->connectedPin( net ) );

@@ -150,7 +150,10 @@ vector<vector<Grid>> Group::gridMap( int layer ) const
 
         for( int i = yMin ; i <= yMax ; ++i )
            for( int j = xMin ; j <= xMax ; ++j )
+           {
               grids[i][j].setLabel( Grid::OBSTACLE );
+              grids[i][j].setBlock( &block );
+           }
      }
   return grids;
 }
