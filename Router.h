@@ -6,8 +6,17 @@
 using std::vector;
 using std::string;
 
+#include <stdexcept>
+
 #include "RoutingGraph/RoutingGraph.h"
 #include "MazeRouter.h"
+
+class FileOpenError : public std::runtime_error
+{
+  public:
+
+    explicit FileOpenError( const string &fileName ) : std::runtime_error( fileName ) {}
+};
 
 class Router
 {
@@ -15,7 +24,7 @@ class Router
 
     using RoutingEngine = MazeRouter;
 
-    inline Router( RoutingEngine* router = nullptr );
+    inline explicit Router( RoutingEngine* router = nullptr );
 
     inline RoutingEngine* router() const;
 

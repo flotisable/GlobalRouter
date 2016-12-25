@@ -13,12 +13,8 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
   ifstream  file( fileName );
   int       groupIndex = 0;
 
+  if( !file.is_open() ) throw FileOpenError( fileName );
   if( !readGroup( groupFileName ) ) return false;
-  if( !file.is_open() )
-  {
-    cerr << "cannot read " << fileName << endl;
-    return false;
-  }
 
   while( !file.eof() )
   {
@@ -99,11 +95,7 @@ bool Router::readNets( const string &fileName )
   ifstream  file( fileName );
   string    word;
   
-  if( !file.is_open() )
-  {
-    cerr << "cannot read " << fileName << endl;
-    return false;
-  }
+  if( !file.is_open() ) throw FileOpenError( fileName );
   
   while( !file.eof() )
   {
@@ -191,11 +183,7 @@ bool Router::readGroup( const string &fileName )
   string            word;
   vector<Symmetry>  symmetrys;
 
-  if( !file.is_open() )
-  {
-    cerr << "cannot read " << fileName << endl;
-    return false;
-  }
+  if( !file.is_open() ) throw FileOpenError( fileName );
 
   while( !file.eof() )
   {

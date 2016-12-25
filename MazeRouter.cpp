@@ -59,7 +59,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
   initSource( source );
   box.push( source );
   block = mGrids[target.y()][target.x()].block();
-  
+
   while( !box.empty() )
   {
     const unsigned int boxNum = box.size();
@@ -117,8 +117,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
     }
     ++label;
   }
-  if( arrivedNum > 0 ) return true;
-  return false;
+  return ( arrivedNum > 0 );
 }
 
 vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
@@ -178,12 +177,12 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
 
     if( layer != grid.layer() )
     {
-      path[layer].path().push_back( p );
+      path[layer].path().push_back( pNext );
       layer = grid.layer();
 
       for( int i = static_cast<int>( path.size() ) ; i <= layer ; ++i )
          path.push_back( Path( i ) );
-      path[layer].path().push_back( p );
+      path[layer].path().push_back( pNext );
     }
     p = pNext;
     
@@ -327,18 +326,23 @@ void MazeRouter::setGridCost( Grid &grid , int layer , MazeRouter::Direct direct
 
 void MazeRouter::output( const Point &source, const Point &target )
 {
-  auto precision = cout.precision();
+  auto precision  = cout.precision();
+  int  tag        = mGrids[source.y()][source.x()].tag();
 
   cout << source << " -> " << target << endl;
   for( int i = static_cast<int>( mGrids.size() ) - 1 ; i >= 0 ; --i )
   {
-     for( const Grid &grid : mGrids[i] ) cout << setw( 2 ) << grid.tag();
+     for( const Grid &grid : mGrids[i] ) cout << ( grid.tag() == tag );
      cout << " ";
-     for( const Grid &grid : mGrids[i] ) cout << setw( 2 ) << grid.label();
+     for( const Grid &grid : mGrids[i] )
+        cout << setw( 2 ) << ( (  grid.label() == Grid::OBSTACLE ||
+                                  grid.tag() == tag ) ? grid.label() : 0 );
      cout << " ";
-     for( const Grid &grid : mGrids[i] ) cout << setw( precision ) << grid.cost();
+     for( const Grid &grid : mGrids[i] )
+        cout << setw( precision ) << ( ( grid.tag() == tag ) ? grid.cost() : 0.0 );
      cout << " ";
-     for( const Grid &grid : mGrids[i] ) cout << setw( 2 ) << grid.layer();
+     for( const Grid &grid : mGrids[i] )
+        cout << setw( 2 ) << ( ( grid.tag() == tag ) ? grid.layer() : 0 );
      cout << endl;
   }
   cout << endl;
