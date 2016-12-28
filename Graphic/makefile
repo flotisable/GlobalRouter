@@ -6,7 +6,7 @@ all : Point.o Rectangle.o
 Point.o : Point.cpp Point.h
 	${CPP} ${CXXFLAGS} -o $@ -c $<
 
-Rectangle.o : Rectangle.cpp Rectangle.h
+Rectangle.o: Rectangle.cpp Rectangle.h Point.h
 	${CPP} ${CXXFLAGS} -o $@ -c $<
 
 clean :

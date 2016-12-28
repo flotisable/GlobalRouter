@@ -247,7 +247,7 @@ vector<RoutingRegion*> Router::getRegions()
 void Router::initRouter( const RoutingRegion *region, int maxLayer )
 {
   mRouter->setMaxLayer( maxLayer );
-  mRouter->setGrids   ( region->gridMap( 1 + maxLayer ) );
+  mRouter->setGridMap ( region->gridMap( 1 + maxLayer ) );
   mRouter->setGridMax ( region->maxGridWidth() , region->maxGridHeight() );
 }
 

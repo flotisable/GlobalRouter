@@ -3,10 +3,9 @@
 
 #include <vector>
 #include <string>
+#include <stdexcept>
 using std::vector;
 using std::string;
-
-#include <stdexcept>
 
 #include "RoutingGraph/RoutingGraph.h"
 #include "MazeRouter.h"
