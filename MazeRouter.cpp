@@ -25,6 +25,7 @@ bool MazeRouter::route()
      {
        for( const Path &path : backTrace( source , target ) )
        {
+          if( path.path().empty() ) continue;
           if( path.path().back() == nullPoint ) return false;
           insertPath( path );
        }
@@ -129,7 +130,7 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
     {
        Point pT = move( p , static_cast<Direct>( direct ) );
 
-       if( pT == nullPoint ) continue;
+       if( pT == nullPoint || move( pT , direction ) == p ) continue;
 
        Grid &grid = map.grid( pT.y() , pT.x() );
        int  layer = map.grid( p.y() , p.x() )

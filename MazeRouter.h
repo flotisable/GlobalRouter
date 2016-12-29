@@ -40,7 +40,7 @@ class MazeRouter
 
     static const Point      nullPoint;
     static constexpr double nullCostDiff  = -1.0;
-    const double            wireWidthMin  = 0.23;
+    const double            wireWidthMin  = 0.46;
 
     Point         movePin     ( const Point &source , const Point &target );
     bool          findPath    ( const Point &source , const Point &target );
