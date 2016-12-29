@@ -13,13 +13,13 @@ const double  MazeRouter::nullCostDiff  = -1.0;
 
 bool MazeRouter::route()
 {
-  Point source = mPins.front();
+  Point source = pins.front();
 
-  mPaths.clear();
+  paths.clear();
 
-  for( unsigned int i = 0 ; i < mPins.size() ; ++i )
+  for( unsigned int i = 0 ; i < pins.size() ; ++i )
   {
-     const Point &target = mPins[i];
+     const Point &target = pins[i];
 
      cout << target << endl;
 
@@ -30,6 +30,7 @@ bool MazeRouter::route()
 
        for( unsigned int i = 0 ; i < paths.size() ; ++i )
        {
+          if( paths[i].path().empty() ) continue;
           if( paths[i].path().back() == nullPoint ) return false;
           insertPath( paths[i] );
        }
@@ -63,20 +64,18 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
 
   initSource( source );
   box.push( source );
-  block = mGrids[target.y()][target.x()].block();
-  
+  block = map.grid( target.y() , target.x() ).block();
+
   while( !box.empty() )
   {
     const unsigned int boxNum = box.size();
 
     for( unsigned int i = 0 ; i < boxNum ; ++i , box.pop() )
     {
+       const Point &p = box.front();
+
       for( int direct = 0 ; direct < directNum ; ++direct )
       {
-         Point  p     = move( box.front() , static_cast<Direct>( direct ) );
-         double cost  = mGrids[box.front().y()][box.front().x()].cost();
-
-         if( p == nullPoint ) continue;
          if( p == target )
          {
            if( ++arrivedNum == fanin )
@@ -87,43 +86,33 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
            continue;
          }
 
-         Grid &grid = mGrids[p.y()][p.x()];
+         Point  pMoved  = move( p , static_cast<Direct>( direct ) );
+         double cost    = map.grid( p.y() , p.x() ).cost();
 
-         if(  grid.label() == Grid::OBSTACLE &&
-              !( grid.block() && grid.block() == block ) ) continue;
+         if( pMoved == nullPoint || gridBlocked( pMoved ) ) continue;
 
-         for( int layer = 0 ; layer <= maxLayer ; ++layer )
+         // select layer
+         int layer = 0;
+
+         for( ; layer <= maxLayer ; ++layer )
          {
             double costDiff = getCostDiff( p , layer , static_cast<Direct>( direct ) );
 
-            if( costDiff != nullCostDiff )
-            {
-              cost += costDiff;
-              grid.setLayer( layer );
-              goto pass;
-            }
-         }
-         continue;
-         pass:
+            if( costDiff == nullCostDiff ) continue;
 
-         if( grid.tag() != tag )
-         {
-           grid.setTag  ( tag );
-           if( grid.label() != Grid::OBSTACLE ) grid.setLabel( label );
-           grid.setCost ( cost );
-           box.push( p );
+            cost += costDiff;
+            break;
          }
-         else if( cost < grid.cost() )
-         {
-           grid.setCost( cost );
-           box.push( p );
-         }
+         if( layer > maxLayer ) continue;
+         // end select layer
+
+         if( setGridInfo( pMoved , label , cost , static_cast<Direct>( direct ) , layer ) )
+           box.push( pMoved );
       }
     }
     ++label;
   }
-  if( arrivedNum > 0 ) return true;
-  return false;
+  return ( arrivedNum > 0 );
 }
 
 vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
@@ -146,11 +135,13 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
     {
        Point pT = move( p , static_cast<Direct>( direct ) );
 
-       if( pT == nullPoint ) continue;
+       if( pT == nullPoint || move( pT , direction ) == p ) continue;
 
-       Grid &grid = mGrids[pT.y()][pT.x()];
+       Grid &grid = map.grid( pT.y() , pT.x() );
+       int  layer = map.grid( p.y() , p.x() )
+                    .edge( static_cast<Grid::Direct>( direct ) )->layer();
 
-       double costDiff = getCostDiff( pT , grid.layer() , static_cast<Direct>( direct ) );
+       double costDiff = getCostDiff( p , layer , static_cast<Direct>( direct ) );
 
        if( costDiff == nullCostDiff ) continue;
 
@@ -176,33 +167,24 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
       path[layer].path().push_back( p );
     // end set direction
 
-    // set cost
-    Grid &grid = mGrids[pNext.y()][pNext.x()];
+    Edge *edge = map.grid( p.y() , p.x() ).edge( static_cast<Grid::Direct>( direction ) );
 
-    setGridCost( mGrids[p.y()][p.x()] , layer , direction , wireWidthMin );
+    edge->setCost( edge->cost( edge->layer() ) + wireWidthMin , edge->layer() );
 
-    if( layer != grid.layer() )
+    if( layer != edge->layer() )
     {
       path[layer].path().push_back( p );
-      layer = grid.layer();
+      layer = edge->layer();
 
       for( int i = static_cast<int>( path.size() ) ; i <= layer ; ++i )
          path.push_back( Path( i ) );
       path[layer].path().push_back( p );
     }
     p = pNext;
-    
-    switch( direction )
-    {
-      case up:    setGridCost( grid , layer , down  , wireWidthMin ); break;
-      case down:  setGridCost( grid , layer , up    , wireWidthMin ); break;
-      case left:  setGridCost( grid , layer , right , wireWidthMin ); break;
-      case right: setGridCost( grid , layer , left  , wireWidthMin ); break;
-      default: break;
-    }
-    // end set cost
 
-    if( grid.label() != Grid::OBSTACLE )  label = grid.label();
+    Grid &grid = map.grid( p.y() , p.x() );
+
+    if( grid.label() != Grid::obstacle )  label = grid.label();
     else                                  --label;
   }
   path[layer].path().push_back( source );
@@ -215,22 +197,22 @@ void MazeRouter::insertPath( const Path &path )
 {
   unsigned int i = 0;
 
-  for( ; i < mPaths.size() ; ++i )
-     if( mPaths[i].layer() == path.layer() ) break;
+  for( ; i < paths.size() ; ++i )
+     if( paths[i].layer() == path.layer() ) break;
 
-  if( i == mPaths.size() ) mPaths.push_back( path );
+  if( i == paths.size() ) paths.push_back( path );
   else
   {
-    mPaths[i].path().insert(  mPaths[i].path().begin() ,
-                              path.path().begin() , path.path().end() );
+    paths[i].path().insert( paths[i].path().begin() ,
+                            path.path().begin() , path.path().end() );
   }
 }
 
 void MazeRouter::uniquePaths()
 {
-  for( unsigned int i = 0 ; i < mPaths.size() ; ++i )
+  for( unsigned int i = 0 ; i < paths.size() ; ++i )
   {
-    vector<Point> &path = mPaths[i].path();
+    vector<Point> &path = paths[i].path();
 
     path.resize( distance( path.begin() , unique( path.begin() , path.end() ) ) );
   }
@@ -238,11 +220,11 @@ void MazeRouter::uniquePaths()
 
 void MazeRouter::initSource( const Point &source )
 {
-  Grid &s = mGrids[source.y()][source.x()];
+  Grid &grid = map.grid( source.y() , source.x() );
 
-  s.setTag( tag );
-  if( s.label() != Grid::OBSTACLE ) s.setLabel( 0 );
-  s.setCost( 0 );
+  grid.setTag( tag );
+  if( grid.label() != Grid::obstacle ) grid.setLabel( 0 );
+  grid.setCost( 0 );
 }
 
 Point MazeRouter::move( const Point &point, MazeRouter::Direct direction )
@@ -251,7 +233,7 @@ Point MazeRouter::move( const Point &point, MazeRouter::Direct direction )
   {
     case up:
 
-      if( point.y() != mGrids.size() - 1 ) return Point( point.x() , point.y() + 1 );
+      if( point.y() != map.row() - 1 ) return Point( point.x() , point.y() + 1 );
       break;
 
     case down:
@@ -266,7 +248,7 @@ Point MazeRouter::move( const Point &point, MazeRouter::Direct direction )
 
     case right:
 
-      if( point.x() != mGrids[0].size() - 1 ) return Point( point.x() + 1 , point.y() );
+      if( point.x() != map.col() - 1 ) return Point( point.x() + 1 , point.y() );
       break;
 
     default: break;
@@ -284,9 +266,9 @@ int MazeRouter::getFanin( const Point &point )
 
      if( p != nullPoint )
      {
-       Grid &grid = mGrids[p.y()][p.x()];
+       Grid &grid = map.grid( p.y() , p.x() );
 
-       if(  grid.label() == Grid::OBSTACLE &&
+       if(  grid.label() == Grid::obstacle &&
             !( grid.block() && grid.block() == block ) ) continue;
        ++fanin;
      }
@@ -294,23 +276,59 @@ int MazeRouter::getFanin( const Point &point )
   return fanin;
 }
 
-double MazeRouter::getCostDiff( const Point &movedPoint , int layer ,
+bool MazeRouter::gridBlocked( const Point &point )
+{
+  Grid &grid = map.grid( point.y() , point.x() );
+
+  return ( grid.label() == Grid::obstacle && !( grid.block() && grid.block() == block ) );
+}
+
+double MazeRouter::getCostDiff( const Point &point , int layer ,
                                 MazeRouter::Direct direction )
 {
-  const Grid  &grid     = mGrids[movedPoint.y()][movedPoint.x()];
-  double      costDiff  = nullCostDiff;
-  double      maxCost   = DBL_MAX;
+  const Grid  &grid   = map.grid( point.y() , point.x() );
+  double      maxCost = DBL_MAX;
+
+  if      ( direction == up   || direction == down  ) maxCost = gridMax.x();
+  else if ( direction == left || direction == right ) maxCost = gridMax.y();
+  else                                                return nullCostDiff;
+
+  double costDiff = grid.edge( static_cast<Grid::Direct>( direction ) )->cost( layer );
+
+  if( costDiff + wireWidthMin >= maxCost ) return nullCostDiff;
+  return costDiff;
+}
+
+bool MazeRouter::setGridInfo( const Point &point, int label, double cost,
+                              Direct direction , int layer )
+{
+  Grid          &grid = map.grid( point.y() , point.x() );
+  Grid::Direct  direct;
 
   switch( direction )
   {
-    case up:    costDiff = grid.costBottom( layer ); maxCost = gridMax.x(); break;
-    case down:  costDiff = grid.costTop   ( layer ); maxCost = gridMax.x(); break;
-    case left:  costDiff = grid.costRight ( layer ); maxCost = gridMax.y(); break;
-    case right: costDiff = grid.costLeft  ( layer ); maxCost = gridMax.y(); break;
-    default:                                                                break;
+    case up:    direct = Grid::bottom;  break;
+    case down:  direct = Grid::top;     break;
+    case left:  direct = Grid::right;   break;
+    case right: direct = Grid::left;    break;
+    default:    return false;
   }
-  if( costDiff + wireWidthMin >= maxCost ) return nullCostDiff;
-  return costDiff;
+
+  if( grid.tag() != tag )
+  {
+    grid.setTag  ( tag );
+    if( grid.label() != Grid::obstacle ) grid.setLabel( label );
+    grid.setCost ( cost );
+    grid.edge( direct )->setLayer( layer );
+    return true;
+  }
+  else if( cost < grid.cost() )
+  {
+    grid.setCost( cost );
+    grid.edge( direct )->setLayer( layer );
+    return true;
+  }
+  return false;
 }
 
 MazeRouter::Direct MazeRouter::getDirect( const Point &p, const Point &movedP )
@@ -322,34 +340,25 @@ MazeRouter::Direct MazeRouter::getDirect( const Point &p, const Point &movedP )
   else                            return unknown;
 }
 
-void MazeRouter::setGridCost( Grid &grid , int layer , MazeRouter::Direct direction ,
-                              double costDiff )
-{
-  switch( direction )
-  {
-    case up:    grid.setCostTop   ( grid.costTop    () + costDiff , layer ); break;
-    case down:  grid.setCostBottom( grid.costBottom () + costDiff , layer ); break;
-    case left:  grid.setCostLeft  ( grid.costLeft   () + costDiff , layer ); break;
-    case right: grid.setCostRight ( grid.costRight  () + costDiff , layer ); break;
-    default: break;
-  }
-}
-
 void MazeRouter::output( const Point &source, const Point &target )
 {
-  streamsize precision = cout.precision();
+  streamsize  precision = cout.precision();
+  int         tag       = map.grid( source.y() , source.x() ).tag();
 
   cout << source << " -> " << target << endl;
-  for( int i = static_cast<int>( mGrids.size() ) - 1 ; i >= 0 ; --i )
+  for( int i = map.row() - 1 ; i >= 0 ; --i )
   {
-     for( unsigned int j = 0 ; j < mGrids[i].size() ; ++j )
-        cout << setw( 2 ) << mGrids[i][j].tag();
+     for( int j = 0 ; j < map.col() ; ++j )
+        cout << ( map.grid( i , j ).tag() == tag );
      cout << " ";
-     for( unsigned int j = 0 ; j < mGrids[i].size() ; ++j )
-        cout << setw( 2 ) << mGrids[i][j].label();
+     for( int j = 0 ; j < map.col() ; ++j )
+        cout  << setw( 2 )
+              << ( (  map.grid( i , j ).label() == Grid::obstacle ||
+                      map.grid( i , j ).tag() == tag ) ? map.grid( i , j ).label() : 0 );
      cout << " ";
-     for( unsigned int j = 0 ; j < mGrids[i].size() ; ++j )
-        cout << setw( precision ) << mGrids[i][j].cost();
+     for( int j = 0 ; j < map.col() ; ++j )
+        cout  << setw( precision )
+              << ( ( map.grid( i , j ).tag() == tag ) ? map.grid( i , j ).cost() : 0.0 );
      cout << endl;
   }
   cout << endl;

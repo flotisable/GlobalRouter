@@ -2,12 +2,13 @@
 #define MAZE_ROUTER_H
 
 #include <vector>
+#include <utility>
 using std::vector;
 
 #include "Graphic/Point.h"
 #include "Component/Net.h"
-#include "Component/Grid.h"
 #include "Component/Path.h"
+#include "GridMap/GridMap.h"
 
 class Block;
 
@@ -17,8 +18,8 @@ class MazeRouter
 
     inline MazeRouter();
 
-    inline void setGrids    ( const vector<vector<Grid> > grids );
-    inline void setPins     ( const vector<Point>         pins  );
+    inline void setGridMap  ( const GridMap &map );
+    inline void setPins     ( const vector<Point> &pins );
     inline void setGridMax  ( double x , double y );
     inline void setMaxLayer ( int maxLayer );
 
@@ -51,9 +52,11 @@ class MazeRouter
     void    initSource  ( const Point &source );
     Point   move        ( const Point &point , Direct direction );
     int     getFanin    ( const Point &point );
-    double  getCostDiff ( const Point &movedPoint , int layer , Direct direction );
+    bool    gridBlocked ( const Point &point );
+    double  getCostDiff ( const Point &point , int layer , Direct direction );
+    bool    setGridInfo ( const Point &point , int label , double cost ,
+                          Direct direction , int layer );
     Direct  getDirect   ( const Point &p , const Point &movedP );
-    void    setGridCost ( Grid &grid , int layer , Direct direction , double costDiff );
 
     void output( const Point &source , const Point &target );
 
@@ -63,22 +66,23 @@ class MazeRouter
 
     Point gridMax;
 
-    vector<vector<Grid> > mGrids;
-    vector<Point>         mPins;
-    vector<Path>          mPaths;
+    GridMap       map;
+    vector<Point> pins;
+    vector<Path>  paths;
 };
 
-MazeRouter::MazeRouter() : wireWidthMin( 0.23 ) , block( NULL ) , tag( 1 ) , maxLayer( 0 ) {}
+MazeRouter::MazeRouter()
+  : wireWidthMin( 0.46 ) , block( NULL ) , tag( 1 ) , maxLayer( 0 ) , map( 0 , 0 , 1 ) {}
 
-inline void MazeRouter::setGrids    ( const vector<vector<Grid> > grids )
-{ mGrids  = grids;  }
-inline void MazeRouter::setPins     ( const vector<Point>         pins  ) { mPins   = pins;   }
+inline void MazeRouter::setGridMap  ( const GridMap &map )
+{ this->map = map; this->map.connectEdges(); }
+inline void MazeRouter::setPins     ( const vector<Point> &pins  )  { this->pins  = pins; }
 inline void MazeRouter::setGridMax  ( double x , double y )
 { gridMax = Point( x , y ); }
 inline void MazeRouter::setMaxLayer ( int maxLayer ) { this->maxLayer = maxLayer; }
 
 inline void MazeRouter::saveNet( Net &net )
-{ for( unsigned int i = 0 ; i < mPaths.size() ; ++i )
-     if( !mPaths[i].path().empty() ) net.paths().push_back( mPaths[i] ); }
+{ for( unsigned int i = 0 ; i < paths.size() ; ++i )
+     if( !paths[i].path().empty() ) net.paths().push_back( paths[i] ); }
 
 #endif

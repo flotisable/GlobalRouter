@@ -6,7 +6,7 @@
 using std::vector;
 
 #include "RoutingRegion.h"
-#include "../Component/Grid.h"
+#include "../GridMap/GridMap.h"
 #include "../Component/Net.h"
 #include "../Component/Group.h"
 
@@ -19,8 +19,8 @@ class RoutingGraph : public RoutingRegion
     inline vector<Group>&       groups();
     inline const vector<Group>& groups() const;
 
-    virtual vector<vector<Grid> > gridMap   ( int layer = 1 ) const;
-    virtual void                  buildSplit();
+    virtual GridMap gridMap   ( int layer = 1 ) const;
+    virtual void    buildSplit();
     
     virtual vector<Point> connectedPin( const Net &net ) const;
 

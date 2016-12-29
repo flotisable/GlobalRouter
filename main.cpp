@@ -5,7 +5,7 @@ using namespace std;
 #include "MazeRouter.h"
 #include "Router.h"
 
-#define COLLAGE_PROJECT_SERVER
+#define FLOTISABLE_LINUX
 
 int main()
 {
@@ -24,9 +24,15 @@ int main()
   const string displayPath  = dirPath + "display_info/";
   const string twoStagePath = dirPath;
 #else
+#ifdef FLOTISABLE_WIN7
+  const string dirPath      = "D:/ProjectImplimentation/";
+  const string displayPath  = dirPath + "display_info/";
+  const string twoStagePath = dirPath + "two_stage_fullnets/";
+#else
   const string dirPath      = "";
   const string displayPath  = dirPath + "";
   const string twoStagePath = dirPath + "";
+#endif
 #endif
 #endif
 #endif
@@ -37,13 +43,20 @@ int main()
   router.setMaxLayer( 6 );
   router.setRouter( &routingEngine );
 
-  router.readBlock( displayPath + "display0.txt" , twoStagePath + "test.constraints" );
-  router.readNets( twoStagePath + "final.nets" );
-  if( router.route() ) router.outputData( dirPath + "routingReport.txt" );
-  else
+  try
   {
-    cerr << "some nets can't be route!";
-    router.outputData( dirPath + "routingReportError.txt" );
+    router.readBlock( displayPath + "display0.txt" , twoStagePath + "test.constraints" );
+    router.readNets( twoStagePath + "final.nets" );
+    if( router.route() ) router.outputData( dirPath + "routingReport.txt" );
+    else
+    {
+      cerr << "some nets can't be route!";
+      router.outputData( dirPath + "routingReportError.txt" );
+    }
+  }
+  catch( const FileOpenError &error )
+  {
+    cerr << "can not open file : " << error.what() << endl;
   }
 
   cin.get();

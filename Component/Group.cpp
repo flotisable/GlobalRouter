@@ -21,14 +21,16 @@ ostream& operator<<( ostream &out , const Group &group )
   out << endl;
   
   out << "Grids :\n";
-  vector<vector<Grid> > grids = group.gridMap();
-  for( int i = static_cast<int>( grids.size() ) - 1 ; i >=0 ; --i )
+
+  GridMap map = group.gridMap();
+
+  for( int i = map.row() - 1 ; i >=0 ; --i )
   {
-     for( unsigned j = 0 ; j < grids[i].size() ; ++j )
-        switch( grids[i][j].label() )
+     for( int j = 0 ; j < map.col() ; ++j )
+        switch( map.grid( i , j ).label() )
         {
-          case Grid::SPACE:     out << "0"; break;
-          case Grid::OBSTACLE:  out << "1"; break;
+          case Grid::space:     out << "0"; break;
+          case Grid::obstacle:  out << "1"; break;
           default:                          break;
         }
      out << endl;
@@ -141,9 +143,9 @@ istream& operator>>( istream &in  , Group &group )
 }
 
 
-vector<vector<Grid> > Group::gridMap( int layer ) const
+GridMap Group::gridMap( int layer ) const
 {
-  vector<vector<Grid> > grids = RoutingRegion::gridMap( layer );
+  GridMap map = RoutingRegion::gridMap( layer );
 
   for( unsigned int i = 0 ; i < symmetrys().size() ; ++i )
      for( unsigned int j = 0 ; j < symmetrys()[i].blocks().size() ; ++j )
@@ -158,11 +160,11 @@ vector<vector<Grid> > Group::gridMap( int layer ) const
         for( int i = yMin ; i <= yMax ; ++i )
            for( int j = xMin ; j <= xMax ; ++j )
            {
-              grids[i][j].setLabel( Grid::OBSTACLE );
-              grids[i][j].setBlock( &block );
+              map.grid( i , j ).setLabel( Grid::obstacle );
+              map.grid( i , j ).setBlock( &block );
            }
      }
-  return grids;
+  return map;
 }
 
 Block* Group::getBlock( const string &name )

@@ -22,14 +22,15 @@ ostream& operator<<( ostream &out , const RoutingGraph &graph )
   out << endl;
 
   out << "Grids :\n";
-  vector<vector<Grid> > grids = graph.gridMap();
-  for( int i = static_cast<int>( grids.size() ) - 1 ; i >=0 ; --i )
+
+  GridMap map = graph.gridMap();
+  for( int i = map.row() - 1 ; i >=0 ; --i )
   {
-     for( unsigned int j = 0 ; j < grids[i].size() ; ++j )
-        switch( grids[i][j].label() )
+     for( int j = 0 ; j < map.col() ; ++j )
+        switch( map.grid( i , j ).label() )
         {
-          case Grid::SPACE:     out << "0"; break;
-          case Grid::OBSTACLE:  out << "1"; break;
+          case Grid::space:     out << "0"; break;
+          case Grid::obstacle:  out << "1"; break;
           default:                          break;
         }
      out << endl;
@@ -184,9 +185,9 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
 }
 
 
-vector<vector<Grid> > RoutingGraph::gridMap( int layer ) const
+GridMap RoutingGraph::gridMap( int layer ) const
 {
-  vector<vector<Grid> > grids = RoutingRegion::gridMap( layer );
+  GridMap map = RoutingRegion::gridMap( layer );
 
   for( unsigned int i = 0 ; i < groups().size() ; ++i )
   {
@@ -198,11 +199,11 @@ vector<vector<Grid> > RoutingGraph::gridMap( int layer ) const
      for( int j = yMin ; j <= yMax ; ++j )
         for( int k = xMin ; k <= xMax ; ++k )
         {
-           grids[j][k].setLabel ( Grid::OBSTACLE );
-           grids[j][k].setBlock ( &groups()[i] );
+           map.grid( j , k ).setLabel ( Grid::obstacle );
+           map.grid( j , k ).setBlock ( &groups()[i] );
         }
   }
-  return grids;
+  return map;
 }
 
 void RoutingGraph::buildSplit()

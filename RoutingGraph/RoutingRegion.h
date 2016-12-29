@@ -7,7 +7,7 @@ using std::vector;
 
 #include "../Component/Block.h"
 #include "../Component/Net.h"
-#include "../Component/Grid.h"
+#include "../GridMap/GridMap.h"
 #include "../Graphic/Point.h"
 
 class RoutingRegion : public Block
@@ -22,20 +22,20 @@ class RoutingRegion : public Block
     inline const vector<double>&  vsplit() const;
     inline vector<Block>&         blocks();
     inline const vector<Block>&   blocks() const;
-    
-    virtual vector<vector<Grid> > gridMap( int layer = 1 ) const;
-    double                        maxGridWidth  () const;
-    double                        maxGridHeight () const;
-    virtual vector<Point>         connectedPin( const Net &net ) const;
 
-    bool                  netConnected( Net &net ) const;
-    virtual Block*        getBlock    ( const string &name );
-    virtual const Block*  getBlock    ( const string &name ) const;
+    virtual GridMap       gridMap     ( int           layer = 1 ) const;
+    virtual vector<Point> connectedPin( const Net     &net      ) const;
+    virtual Block*        getBlock    ( const string  &name     );
+    virtual const Block*  getBlock    ( const string  &name     ) const;
+
+    double  maxGridWidth  () const;
+    double  maxGridHeight () const;
+    bool    netConnected  ( Net &net ) const;
 
     virtual void  buildSplit() = 0;
-    
+
   protected:
-  
+
     int getIndex( const vector<double> &array , double value ) const;
 
     vector<double>  mHsplit;

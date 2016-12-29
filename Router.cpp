@@ -14,12 +14,8 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
   ifstream  file( fileName.data() );
   int       groupIndex = 0;
 
+  if( !file.is_open() ) throw FileOpenError( fileName );
   if( !readGroup( groupFileName ) ) return false;
-  if( !file.is_open() )
-  {
-    cerr << "cannot read " << fileName << endl;
-    return false;
-  }
 
   while( !file.eof() )
   {
@@ -100,11 +96,7 @@ bool Router::readNets( const string &fileName )
   ifstream  file( fileName.data() );
   string    word;
   
-  if( !file.is_open() )
-  {
-    cerr << "cannot read " << fileName << endl;
-    return false;
-  }
+  if( !file.is_open() ) throw FileOpenError( fileName );
   
   while( !file.eof() )
   {
@@ -196,11 +188,7 @@ bool Router::readGroup( const string &fileName )
   string            word;
   vector<Symmetry>  symmetrys;
 
-  if( !file.is_open() )
-  {
-    cerr << "cannot read " << fileName << endl;
-    return false;
-  }
+  if( !file.is_open() ) throw FileOpenError( fileName );
 
   while( !file.eof() )
   {
@@ -265,7 +253,7 @@ vector<RoutingRegion*> Router::getRegions()
 void Router::initRouter( const RoutingRegion *region, int maxLayer )
 {
   mRouter->setMaxLayer( maxLayer );
-  mRouter->setGrids   ( region->gridMap( 1 + maxLayer ) );
+  mRouter->setGridMap ( region->gridMap( 1 + maxLayer ) );
   mRouter->setGridMax ( region->maxGridWidth() , region->maxGridHeight() );
 }
 

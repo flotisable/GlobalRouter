@@ -3,11 +3,19 @@
 
 #include <vector>
 #include <string>
+#include <stdexcept>
 using std::vector;
 using std::string;
 
 #include "RoutingGraph/RoutingGraph.h"
 #include "MazeRouter.h"
+
+class FileOpenError : public std::runtime_error
+{
+  public:
+
+    explicit FileOpenError( const string &fileName ) : std::runtime_error( fileName ) {}
+};
 
 class Router
 {
@@ -15,7 +23,7 @@ class Router
 
     typedef MazeRouter RoutingEngine;
 
-    inline Router( RoutingEngine* router = NULL );
+    inline explicit Router( RoutingEngine* router = NULL );
 
     inline RoutingEngine* router() const;
 

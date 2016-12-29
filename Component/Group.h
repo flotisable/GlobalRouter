@@ -15,7 +15,7 @@ class Group : public RoutingRegion
     inline vector<Symmetry>& symmetrys();
     inline const vector<Symmetry>& symmetrys() const;
     
-    virtual vector<vector<Grid> > gridMap( int layer = 1 ) const;
+    virtual GridMap gridMap( int layer = 1 ) const;
     
     virtual Block*        getBlock( const string &name );
     virtual const Block*  getBlock( const string &name ) const;
