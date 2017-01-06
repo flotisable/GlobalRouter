@@ -5,7 +5,7 @@ using namespace std;
 #include "MazeRouter.h"
 #include "Router.h"
 
-#define FLOTISABLE_LINUX
+#define FLOTISABLE_WIN10
 
 int main()
 {
@@ -40,7 +40,7 @@ int main()
   try
   {
     router.readBlock( displayPath + "display0.txt" , twoStagePath + "test.constraints" );
-    router.readNets( twoStagePath + "final.nets" );
+    router.readNets( twoStagePath + "new_final.nets" );
     if( router.route() ) router.outputData( dirPath + "routingReport.txt" );
     else
     {

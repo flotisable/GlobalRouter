@@ -340,9 +340,8 @@ const Net* RoutingGraph::getNet( const string &name ) const
 const Block& RoutingGraph::operator=( const Block &block )
 {
   setName       ( block.name      () );
-  setHeight     ( block.height    () );
-  setWidth      ( block.width     () );
-  setLeftBottom ( block.leftBottom().x() , block.leftBottom().y() );
+  setLeftBottom ( block.leftBottom() );
+  setRightTop   ( block.rightTop  () );
 
   return block;
 }
