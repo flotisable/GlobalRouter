@@ -41,16 +41,17 @@ int main()
   {
     router.readBlock( displayPath + "display0.txt" , twoStagePath + "test.constraints" );
     router.readNets( twoStagePath + "new_final.nets" );
-    if( router.route() ) router.outputData( dirPath + "routingReport.txt" );
-    else
-    {
-      cerr << "some nets can't be route!";
-      router.outputData( dirPath + "routingReportError.txt" );
-    }
+    router.route();
+    router.outputData( dirPath + "routingReport.txt" );
   }
   catch( const FileOpenError &error )
   {
     cerr << "can not open file : " << error.what() << endl;
+  }
+  catch( const NetCannotRoute &error )
+  {
+    cerr << "some nets can't be route!";
+    router.outputData( dirPath + "routingReportError.txt" );
   }
 
   cin.get();

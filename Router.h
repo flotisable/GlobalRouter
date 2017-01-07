@@ -10,12 +10,16 @@ using std::string;
 #include "RoutingGraph/RoutingGraph.h"
 #include "MazeRouter.h"
 
+// for exception
 class FileOpenError : public std::runtime_error
 {
   public:
 
     explicit FileOpenError( const string &fileName ) : std::runtime_error( fileName ) {}
 };
+
+class NetCannotRoute {};
+// end for exception
 
 class Router
 {
@@ -30,20 +34,20 @@ class Router
     inline void setRouter   ( RoutingEngine*  router    );
     inline void setMaxLayer ( int             maxLayer  );
 
-    bool readBlock( const string &fileName , const string &groupFileName );
-    bool readNets ( const string &fileName );
-    bool route    ();
-    
+    void readBlock( const string &fileName , const string &groupFileName );
+    void readNets ( const string &fileName );
+    void route    ();
     void outputData( const string &fileName ) const;
 
   private:
 
     const double unit = 0.01; // 0.01u
 
-    bool readGroup( const string &fileName );
+    void readGroup( const string &fileName );
 
     vector<RoutingRegion*>  getRegions();
     void                    initRouter( const RoutingRegion *region , int maxLayer );
+    vector<Point>           sortPins  ( vector<Point> pins );
     bool                    netRouted ( const Net &net , const RoutingRegion *region );
     void                    saveNet   ( Net &net , RoutingRegion *region );
 

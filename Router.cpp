@@ -4,17 +4,20 @@
 #include <string>
 #include <cctype>
 #include <iostream>
+#include <cfloat>
+#include <algorithm>
 using namespace std;
 
 #include "Component/Block.h"
 
-bool Router::readBlock( const string &fileName , const string &groupFileName )
+void Router::readBlock( const string &fileName , const string &groupFileName )
 {
   ifstream  file( fileName );
   int       groupIndex = 0;
 
   if( !file.is_open() ) throw FileOpenError( fileName );
-  if( !readGroup( groupFileName ) ) return false;
+
+  readGroup( groupFileName );
 
   while( !file.eof() )
   {
@@ -59,9 +62,8 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       }
       else if( name[0] == 'G' ) // ³]©w Group set group
       {
-        graph.groups()[groupIndex].setLeftBottom( lbX * unit , lbY * unit );
-        graph.groups()[groupIndex].setHeight    ( height * unit );
-        graph.groups()[groupIndex].setWidth     ( width * unit );
+        graph.groups()[groupIndex].setLeftBottom( block.leftBottom() );
+        graph.groups()[groupIndex].setRightTop  ( block.rightTop  () );
         
         ++groupIndex;
       }
@@ -86,11 +88,9 @@ bool Router::readBlock( const string &fileName , const string &groupFileName )
       if( file.eof() ) break;
   }
   graph.buildSplit();
-  
-  return true;
 }
 
-bool Router::readNets( const string &fileName )
+void Router::readNets( const string &fileName )
 {
   ifstream  file( fileName );
   string    word;
@@ -135,38 +135,34 @@ bool Router::readNets( const string &fileName )
       graph.nets().push_back( net );
     }
   }
-  return true;
 }
 
-bool Router::route()
+void Router::route()
 {
-  if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return false;
+  if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return;
 
   for( RoutingRegion *region : getRegions() )
   {
-     int layer;
-
      cout << region->name() << endl;
 
-     for( layer = 0 ; layer <= maxLayer ; ++layer )
+     for( int layer = 0 ; layer <= maxLayer ; ++layer )
      {
         initRouter( region , layer );
 
         for( Net &net : graph.nets() )
         {
-           if( /*netRouted( net , region ) ||*/ !region->netConnected( net ) ) continue;
+           if( !region->netConnected( net ) ) continue;
 
            cout << net.name() << endl;
-           mRouter->setPins( region->connectedPin( net ) );
+           mRouter->setPins( sortPins( region->connectedPin( net ) ) );
            if( !mRouter->route() ) goto nextLayer;
+           if( netRouted( net , region ) ) continue;
            saveNet( net , region );
         }
         break;
-        nextLayer: continue;
+        nextLayer: if( layer >= maxLayer ) throw NetCannotRoute();
      }
-     if( layer > maxLayer ) return false;
   }
-  return true;
 }
 
 void Router::outputData( const string &fileName ) const
@@ -177,7 +173,7 @@ void Router::outputData( const string &fileName ) const
 }
 
 
-bool Router::readGroup( const string &fileName )
+void Router::readGroup( const string &fileName )
 {
   ifstream          file( fileName );
   string            word;
@@ -231,7 +227,6 @@ bool Router::readGroup( const string &fileName )
       graph.groups().push_back( group );
     }
   }
-  return true;
 }
 
 vector<RoutingRegion*> Router::getRegions()
@@ -249,6 +244,45 @@ void Router::initRouter( const RoutingRegion *region, int maxLayer )
   mRouter->setMaxLayer( maxLayer );
   mRouter->setGridMap ( region->gridMap( 1 + maxLayer ) );
   mRouter->setGridMax ( region->maxGridWidth() , region->maxGridHeight() );
+}
+
+vector<Point> Router::sortPins( vector<Point> pins )
+{
+  if( pins.size() <= 2 ) return pins;
+
+  vector<double> cost( pins.size() , 0 );
+
+  // find first pin to be route
+  for( unsigned int i = 0 ; i < pins.size() ; ++i )
+  {
+     const Point &pin = pins[i];
+
+     for( const Point &target : pins )
+     {
+        if( pin == target ) continue;
+        cost[i] += manhattanDistance( pin , target );
+     }
+  }
+
+  int firstIndex = 0;
+
+  for( unsigned int i = 1 ; i < cost.size() ; ++i )
+     if( cost[i] < cost[firstIndex] ) firstIndex = i;
+
+  swap( pins[0] , pins[firstIndex] );
+  // end find first pin to be route
+
+  for( unsigned int i = 1 ; i < pins.size() - 1 ; ++i )
+  {
+     const Point  &source   = pins[i-1];
+     int          nextIndex = i;
+
+     for( unsigned int j = i + 1 ; j < pins.size() ; ++j )
+        if( manhattanDistance( source , pins[nextIndex] ) > manhattanDistance( source , pins[j] ) ) nextIndex = j;
+
+     swap( pins[i] , pins[nextIndex] );
+  }
+  return pins;
 }
 
 bool Router::netRouted( const Net &net , const RoutingRegion *region )

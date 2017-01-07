@@ -21,7 +21,7 @@ GridMap RoutingRegion::gridMap( int layer ) const
      for( int i = yMin ; i <= yMax ; ++i )
         for( int j = xMin ; j <= xMax ; ++j )
         {
-           map.grid( i , j ).setLabel( Grid::obstacle );
+           map.grid( i , j ).setValue( Grid::Value::obstacle );
            map.grid( i , j ).setBlock( &block );
         }
   }

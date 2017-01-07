@@ -22,11 +22,11 @@ ostream& operator<<( ostream &out , const Group &group )
   for( int i = map.row() - 1 ; i >=0 ; --i )
   {
      for( const Grid &grid : map.grid( i ) )
-        switch( grid.label() )
+        switch( grid.value() )
         {
-          case Grid::space:     out << "0"; break;
-          case Grid::obstacle:  out << "1"; break;
-          default:                          break;
+          case Grid::Value::space:    out << "0"; break;
+          case Grid::Value::obstacle: out << "1"; break;
+          default:                                break;
         }
      out << endl;
   }
@@ -151,7 +151,7 @@ GridMap Group::gridMap( int layer ) const
         for( int i = yMin ; i <= yMax ; ++i )
            for( int j = xMin ; j <= xMax ; ++j )
            {
-              map.grid( i , j ).setLabel( Grid::obstacle );
+              map.grid( i , j ).setValue( Grid::Value::obstacle );
               map.grid( i , j ).setBlock( &block );
            }
      }
