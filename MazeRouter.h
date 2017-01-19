@@ -42,7 +42,7 @@ class MazeRouter
     static constexpr double nullCostDiff  = -1.0;
     const double            wireWidthMin  = 0.46;
 
-    Point         movePin     ( const Point &source , const Point &target );
+    const Block*  getBlock    ( const Point &point );
     bool          findPath    ( const Point &source , const Point &target );
     vector<Path>  backTrace   ( const Point &source , const Point &target );
     void          insertPath  ( const Path  &path );
@@ -59,9 +59,10 @@ class MazeRouter
 
     void output( const Point &source , const Point &target );
 
-    const Block *block    { nullptr };
-    int         tag       { 1 };
-    int         maxLayer  {};
+    const Block *sourceBlock  { nullptr };
+    const Block *targetBlock  { nullptr };
+    int         tag           { 1 };
+    int         maxLayer      {};
 
     Point gridMax;
 

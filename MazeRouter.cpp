@@ -22,7 +22,8 @@ bool MazeRouter::route()
 
      if( source == target ) continue;
 
-     block = map.grid( target.y() , target.x() ).block();
+     sourceBlock = getBlock( source );
+     targetBlock = getBlock( target );
 
      if( findPath( source , target ) )
      {
@@ -44,13 +45,11 @@ bool MazeRouter::route()
 }
 
 
-Point MazeRouter::movePin( const Point &source, const Point &target )
+const Block *MazeRouter::getBlock( const Point &point )
 {
-  Point p = source;
+  const Block *block = map.grid( point.y() , point.x() ).block();
 
-  //while( !getFanin( p ) );
-  p = target;
-  return p;
+  return ( block && block->type() == Block::Type::region ) ? block : nullptr;
 }
 
 bool MazeRouter::findPath( const Point &source , const Point &target )
@@ -59,6 +58,12 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
   int           arrivedNum  = 0;
   int           label       = 1;
   queue<Point>  box;
+
+  if( fanin == 0 )
+  {
+    targetBlock = map.grid( target.y() , target.x() ).block();
+    fanin       = getFanin( target );
+  }
 
   initSource( source );
   box.push( source );
@@ -86,7 +91,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
           Point  pMoved = move( p , static_cast<Direct>( direct ) );
           double cost   = map.grid( p.y() , p.x() ).cost();
 
-          if( pMoved == nullPoint || gridBlocked( pMoved ) ) continue;
+          if( ( pMoved == nullPoint || gridBlocked( pMoved ) ) && pMoved != target ) continue;
 
           // select layer
           int layer = 0;
@@ -261,7 +266,8 @@ bool MazeRouter::gridBlocked( const Point &point )
 {
   Grid &grid = map.grid( point.y() , point.x() );
 
-  return ( grid.value() == Grid::Value::obstacle && !( grid.block() && grid.block() == block ) );
+  return (  grid.value() == Grid::Value::obstacle &&
+            !( grid.block() && ( grid.block() == sourceBlock || grid.block() == targetBlock ) ) );
 }
 
 double MazeRouter::getCostDiff( const Point &point , int layer ,

@@ -14,6 +14,8 @@ class RoutingRegion : public Block
 {
   public:
 
+    inline RoutingRegion();
+
     virtual ~RoutingRegion() = default;
 
     inline vector<double>&        hsplit();
@@ -42,6 +44,8 @@ class RoutingRegion : public Block
     vector<double>  mVsplit;
     vector<Block>   mBlocks;
 };
+
+inline RoutingRegion::RoutingRegion() : Block( string() , Block::Type::region ) {}
 
 inline vector<double>&        RoutingRegion::hsplit()       { return mHsplit; }
 inline const vector<double>&  RoutingRegion::hsplit() const { return mHsplit; }
