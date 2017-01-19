@@ -1,0 +1,4 @@
+1.split Blocks to at least 3 pieces
+2.add extra cost when change the layer
+3.don't let the net to cross the Block
+4.write document about the code
