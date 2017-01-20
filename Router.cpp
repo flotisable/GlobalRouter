@@ -21,7 +21,7 @@ void Router::readBlock( const string &fileName , const string &groupFileName )
 
   while( !file.eof() )
   {
-    // §PÂ_µù¸Ñ test if it is comment
+    // åˆ¤æ–·è¨»è§£ test if it is comment
     if( file.peek() == '/' )
     {
       char c = file.get();
@@ -33,7 +33,7 @@ void Router::readBlock( const string &fileName , const string &groupFileName )
       }
       else file.putback( c );
     }
-    // end §PÂ_µù¸Ñ test if it is comment
+    // end åˆ¤æ–·è¨»è§£ test if it is comment
     
     if( isdigit( file.peek() ) )
     {
@@ -47,7 +47,7 @@ void Router::readBlock( const string &fileName , const string &groupFileName )
       file >> lbX >> lbY >> width >> height >> name;
       
       /*
-        ¦]¬° Block ³]­pªºÃö«Y¡A­n¥ı³]©w LeftBottom ¦A³]©w Height , Width ¤~¤£·|¥X°İÃD
+        å› ç‚º Block è¨­è¨ˆçš„é—œä¿‚ï¼Œè¦å…ˆè¨­å®š LeftBottom å†è¨­å®š Height , Width æ‰ä¸æœƒå‡ºå•é¡Œ
         because of the design of Block, we need to setup LeftBottom first, and then
         setup Height and Width
       */
@@ -60,14 +60,14 @@ void Router::readBlock( const string &fileName , const string &groupFileName )
       {
         graph = block;
       }
-      else if( name[0] == 'G' ) // ³]©w Group set group
+      else if( name[0] == 'G' ) // è¨­å®š Group set group
       {
         graph.groups()[groupIndex].setLeftBottom( block.leftBottom() );
         graph.groups()[groupIndex].setRightTop  ( block.rightTop  () );
         
         ++groupIndex;
       }
-      else // °»´ú Block ¬O§_Äİ©ó Group  find if block is contained in a group
+      else // åµæ¸¬ Block æ˜¯å¦å±¬æ–¼ Group  find if block is contained in a group
       {
         for( Group &group : graph.groups() )
         {

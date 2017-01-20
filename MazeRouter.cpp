@@ -80,11 +80,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
        {
           if( p == target )
           {
-            if( ++arrivedNum == fanin )
-            {
-              output( source , target );
-              return true;
-            }
+            ++arrivedNum;
             continue;
           }
 
@@ -114,7 +110,12 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
     }
     ++label;
   }
-  return ( arrivedNum > 0 );
+  if( arrivedNum > 0 )
+  {
+    output( source , target );
+    return true;
+  }
+  return false;
 }
 
 vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
@@ -283,7 +284,7 @@ double MazeRouter::getCostDiff( const Point &point , int layer ,
   double costDiff = grid.edge( static_cast<Grid::Direct>( direction ) )->cost( layer );
 
   if( costDiff + wireWidthMin >= maxCost ) return nullCostDiff;
-  return costDiff;
+  return costDiff + abs( grid.layer() - layer ) * max( gridMax.x() , gridMax.y() );
 }
 
 bool MazeRouter::setGridInfo( const Point &point, int label, double cost,
@@ -305,13 +306,16 @@ bool MazeRouter::setGridInfo( const Point &point, int label, double cost,
   {
     grid.setTag  ( tag );
     grid.setLabel( label );
+    grid.setLayer( layer );
     grid.setCost ( cost );
     grid.edge( direct )->setLayer( layer );
     return true;
   }
   else if( cost < grid.cost() )
   {
-    grid.setCost( cost );
+    grid.setLabel( label );
+    grid.setLayer( layer );
+    grid.setCost ( cost );
     grid.edge( direct )->setLayer( layer );
     return true;
   }
