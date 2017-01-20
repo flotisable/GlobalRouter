@@ -10,20 +10,15 @@ using std::string;
 #include "RoutingGraph/RoutingGraph.h"
 #include "MazeRouter.h"
 
-// for exception
-class FileOpenError : public std::runtime_error
-{
-  public:
-
-    explicit FileOpenError( const string &fileName ) : std::runtime_error( fileName ) {}
-};
-
-class NetCannotRoute {};
-// end for exception
-
 class Router
 {
   public:
+
+    // for exception
+    class FileOpenError;
+    class RoutingEngineError;
+    class NetCannotRoute {};
+    // end for exception
 
     using RoutingEngine = MazeRouter;
 
@@ -57,11 +52,45 @@ class Router
     int           maxLayer = 0;
 };
 
+// for exceptions
+class Router::FileOpenError : public std::runtime_error
+{
+  public:
+
+    explicit FileOpenError( const string &fileName ) : std::runtime_error( fileName ) {}
+};
+
+class Router::RoutingEngineError
+{
+  public:
+
+    inline RoutingEngineError( const string &engineName , const string &errorName );
+
+    inline const string& engineName() const;
+    inline const string& errorName () const;
+
+  private:
+
+    const string engine;
+    const string error;
+};
+// end for exceptions
+
+// Router public inline member functions
 inline Router::Router( RoutingEngine* router ) : mRouter( router ) {}
 
 inline Router::RoutingEngine* Router::router() const { return mRouter; }
 
 inline void Router::setRouter   ( RoutingEngine*  router    ) { mRouter         = router;   }
 inline void Router::setMaxLayer ( int             maxLayer  ) { this->maxLayer  = maxLayer; }
+// end Router public inline member functions
+
+// Router::RoutingEngineError public inline member functions
+inline Router::RoutingEngineError::RoutingEngineError( const string &engineName , const string &errorName )
+  : engine( engineName ) , error( errorName ) {}
+
+inline const string& Router::RoutingEngineError::engineName () const { return engine; }
+inline const string& Router::RoutingEngineError::errorName  () const { return error;  }
+// end Router::RoutingEngineError public inline member functions
 
 #endif

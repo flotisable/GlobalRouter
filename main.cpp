@@ -44,14 +44,18 @@ int main()
     router.route();
     router.outputData( dirPath + "routingReport.txt" );
   }
-  catch( const FileOpenError &error )
+  catch( const Router::FileOpenError &error )
   {
     cerr << "can not open file : " << error.what() << endl;
   }
-  catch( const NetCannotRoute &error )
+  catch( const Router::NetCannotRoute &error )
   {
-    cerr << "some nets can't be route!";
+    cerr << "some nets can't be route!\n";
     router.outputData( dirPath + "routingReportError.txt" );
+  }
+  catch( const Router::RoutingEngineError &error )
+  {
+    cerr << "RoutingEngineError : " << error.engineName() << "::" << error.errorName() << endl;
   }
 
   cin.get();

@@ -16,6 +16,8 @@ class MazeRouter
 {
   public:
 
+    class BacktraceError{}; // for exception
+
     inline void setGridMap  ( const GridMap &map  );
     inline void setGridMap  ( GridMap       &&map );
     inline void setPins     ( const vector<Point> &pins  );

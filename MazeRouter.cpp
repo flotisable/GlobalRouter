@@ -30,7 +30,6 @@ bool MazeRouter::route()
        for( const Path &path : backTrace( source , target ) )
        {
           if( path.path().empty() ) continue;
-          if( path.path().back() == nullPoint ) return false;
           insertPath( path );
        }
      }
@@ -158,11 +157,7 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
 
     // set direction
     direction = getDirect( p , pNext );
-    if( direction == unknown )
-    {
-      path[0].path().push_back( nullPoint );
-      return path;
-    }
+    if( direction == unknown ) throw BacktraceError();
 
     const Point &pPrevious = path[layer].path().back();
 

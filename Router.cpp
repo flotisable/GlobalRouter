@@ -139,29 +139,36 @@ void Router::readNets( const string &fileName )
 
 void Router::route()
 {
-  if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return;
-
-  for( RoutingRegion *region : getRegions() )
+  try
   {
-     cout << region->name() << endl;
+    if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return;
 
-     for( int layer = 0 ; layer <= maxLayer ; ++layer )
-     {
-        initRouter( region , layer );
+    for( RoutingRegion *region : getRegions() )
+    {
+       cout << region->name() << endl;
 
-        for( Net &net : graph.nets() )
-        {
-           if( !region->netConnected( net ) ) continue;
+       for( int layer = 0 ; layer <= maxLayer ; ++layer )
+       {
+          initRouter( region , layer );
 
-           cout << net.name() << endl;
-           mRouter->setPins( sortPins( region->connectedPin( net ) ) );
-           if( !mRouter->route() ) goto nextLayer;
-           if( netRouted( net , region ) ) continue;
-           saveNet( net , region );
-        }
-        break;
-        nextLayer: if( layer >= maxLayer ) throw NetCannotRoute();
-     }
+          for( Net &net : graph.nets() )
+          {
+             if( !region->netConnected( net ) ) continue;
+
+             cout << net.name() << endl;
+             mRouter->setPins( sortPins( region->connectedPin( net ) ) );
+             if( !mRouter->route() ) goto nextLayer;
+             if( netRouted( net , region ) ) continue;
+             saveNet( net , region );
+          }
+          break;
+          nextLayer: if( layer >= maxLayer ) throw NetCannotRoute();
+      }
+    }
+  }
+  catch( const MazeRouter::BacktraceError &error )
+  {
+    throw RoutingEngineError( "MazeRouter" , "BacktraceError" );
   }
 }
 
