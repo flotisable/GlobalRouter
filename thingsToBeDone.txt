@@ -1,4 +1,3 @@
 1.split Blocks to at least 3 pieces
 2.increase routing efficiency
-3.move pin which is not on the side of Block before routing
-4.write document about the code
+3.write document about the code

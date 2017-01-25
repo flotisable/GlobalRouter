@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cfloat>
 #include <algorithm>
+#include <map>
 using namespace std;
 
 #include "Component/Block.h"
@@ -156,7 +157,7 @@ void Router::route()
              if( !region->netConnected( net ) ) continue;
 
              cout << net.name() << endl;
-             mRouter->setPins( sortPins( region->connectedPin( net ) ) );
+             mRouter->setPins( sortPins( movePins( region->connectedPin( net ) , region , net ) ) );
              if( !mRouter->route() ) goto nextLayer;
              if( netRouted( net , region ) ) continue;
              saveNet( net , region );
@@ -253,6 +254,35 @@ void Router::initRouter( const RoutingRegion *region, int maxLayer )
   mRouter->setGridMax ( region->maxGridWidth() , region->maxGridHeight() );
 }
 
+vector<Point> Router::movePins( vector<Point> pins , const RoutingRegion *region , const Net &net )
+{
+  auto compare = []( const Point &front , const Point &back ) { return ( front.x() < back.x() ); };
+
+  map<Point,Pin,decltype( compare )> table( compare );
+
+  for( const Pin &pin : net.pins() ) table[region->map( pin.x() , pin.y() )] = pin;
+
+  for( Point &p : pins )
+  {
+     const Point lb = region->map( table[p].connect()->leftBottom() );
+     Point rt = region->map( table[p].connect()->rightTop  () );
+
+     rt = Point{ rt.x() - 1 , rt.y() - 1 };
+
+     if(  lb.x() < p.x() && p.x() < rt.x() &&
+          lb.y() < p.y() && p.y() < rt.y() )
+     {
+       double y = ( p.y() - lb.y() > rt.y() - p.y() ) ? rt.y() : lb.y();
+
+       if       ( y == region->bottom () ) y = rt.y();
+       else if  ( y == region->top    () ) y = lb.y();
+
+       p.setY( y );
+     }
+  }
+  return pins;
+}
+
 vector<Point> Router::sortPins( vector<Point> pins )
 {
   if( pins.size() <= 2 ) return pins;
@@ -301,7 +331,32 @@ bool Router::netRouted( const Net &net , const RoutingRegion *region )
 
 void Router::saveNet( Net &net , RoutingRegion *region )
 {
-  mRouter->saveNet( net );
+  for( const Path &path : mRouter->paths() )
+     if( !path.path().empty() )
+     {
+       if( path.layer() == 0 )
+       {
+         for( const Point &p : movePins( region->connectedPin( net ) , region , net ) )
+         {
+//            const Point   p       = region->map( pin.x() , pin.y() );
+            vector<Point> &pathT  = const_cast<vector<Point>&>( path.path() );
+
+            auto it = find( pathT.begin() , pathT.end() , p );
+
+            if      ( it      == pathT.end  () ) continue;
+            else if ( it + 1  == pathT.end  () ) ++it;
+            else if ( it      != pathT.begin() )
+            {
+              pathT.insert( it , *it );
+              it = find( pathT.begin() , pathT.end() , p );
+              ++it;
+            }
+
+            pathT.insert( it , p );
+         }
+       }
+       net.paths().push_back( std::move( path ) );
+     }
 
   for( Path &path : net.paths() )
      if( !path.belongRegion() ) path.setBelongRegion( region );

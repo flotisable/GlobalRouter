@@ -6,6 +6,8 @@ using namespace std;
 
 #include "../Component/Pin.h"
 
+const Point RoutingRegion::nullPoint = Point{ -1 , -1 };
+
 GridMap RoutingRegion::gridMap( int layer ) const
 {
   assert( mVsplit.size() > 0 && mHsplit.size() > 0 );
@@ -49,7 +51,6 @@ GridMap RoutingRegion::gridMap( int layer ) const
              grid.edge( Grid::right  )->setCost( maxV - vSpace , k );
         }
      }
-
   return map;
 }
 
@@ -61,24 +62,7 @@ vector<Point> RoutingRegion::connectedPin( const Net &net ) const
   {
      if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
           ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
-     {
-       unsigned int x;
-       unsigned int y;
-
-       for( x = 0 ; x < mHsplit.size() ; ++x )
-          if( mHsplit[x] >= pin.x() )
-          {
-            --x;
-            break;
-          }
-       for( y = 0 ; y < mVsplit.size() ; ++y )
-          if( mVsplit[y] >= pin.y() )
-          {
-            --y;
-            break;
-          }
-       pins.push_back( Point( x , y ) );
-     }
+       pins.push_back( map( pin ) );
   }
   return pins;
 }
@@ -126,6 +110,34 @@ bool RoutingRegion::netConnected( Net &net ) const
           ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
        return true;
   return false;
+}
+
+int RoutingRegion::mapX( double x ) const
+{
+  for( unsigned i = 0 ; i < mHsplit.size() ; ++i )
+     if( mHsplit[i] > x ) return --i;
+  return -1;
+}
+
+int RoutingRegion::mapY( double y ) const
+{
+  for( unsigned i = 0 ; i < mVsplit.size() ; ++i )
+     if( mVsplit[i] > y )
+       return --i;
+  return -1;
+}
+
+Point RoutingRegion::map( const Point &point ) const
+{
+  if( ( mHsplit.front() <= point.x() && point.x() <= mHsplit.back() ) &&
+      ( mVsplit.front() <= point.y() && point.y() <= mVsplit.back() ) )
+    return Point{ static_cast<double>( mapX( point.x() ) ) , static_cast<double>( mapY( point.y() ) ) };
+  return nullPoint;
+}
+
+Point RoutingRegion::map( double x, double y ) const
+{
+  return map( Point{ x , y } );
 }
 
 

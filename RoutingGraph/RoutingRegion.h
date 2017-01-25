@@ -14,6 +14,8 @@ class RoutingRegion : public Block
 {
   public:
 
+    static const Point nullPoint;
+
     inline RoutingRegion();
 
     virtual ~RoutingRegion() = default;
@@ -33,6 +35,11 @@ class RoutingRegion : public Block
     double  maxGridWidth  () const;
     double  maxGridHeight () const;
     bool    netConnected  ( Net &net ) const;
+
+    int     mapX( double x ) const;
+    int     mapY( double y ) const;
+    Point   map ( const Point &point   ) const;
+    Point   map ( double x , double y  ) const;
 
     virtual void  buildSplit() = 0;
 

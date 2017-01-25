@@ -42,6 +42,7 @@ class Router
 
     vector<RoutingRegion*>  getRegions();
     void                    initRouter( const RoutingRegion *region , int maxLayer );
+    vector<Point>           movePins  ( vector<Point> pins , const RoutingRegion *region , const Net &net );
     vector<Point>           sortPins  ( vector<Point> pins );
     bool                    netRouted ( const Net &net , const RoutingRegion *region );
     void                    saveNet   ( Net &net , RoutingRegion *region );

@@ -14,7 +14,7 @@ bool MazeRouter::route()
 {
   Point source = pins.front();
 
-  paths.clear();
+  mPaths.clear();
 
   for( const Point &target : pins )
   {
@@ -189,17 +189,17 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
 
 void MazeRouter::insertPath( const Path &path )
 {
-  auto it = find_if(  paths.begin() , paths.end() ,
+  auto it = find_if(  mPaths.begin() , mPaths.end() ,
                       [&]( const Path &p ) { return ( p.layer() == path.layer() ); } );
 
-  if( it == paths.end() ) paths.push_back( path );
-  else                    it->path().insert(  it->path().begin() ,
-                                              path.path().begin() , path.path().end() );
+  if( it == mPaths.end() )  mPaths.push_back( path );
+  else                      it->path().insert(  it->path().begin() ,
+                                                path.path().begin() , path.path().end() );
 }
 
 void MazeRouter::uniquePaths()
 {
-  for( Path &pathT : paths )
+  for( Path &pathT : mPaths )
   {
     vector<Point> &path = pathT.path();
 

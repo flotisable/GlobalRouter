@@ -18,13 +18,13 @@ class MazeRouter
 
     class BacktraceError{}; // for exception
 
+    inline const vector<Path>& paths();
+
     inline void setGridMap  ( const GridMap &map  );
     inline void setGridMap  ( GridMap       &&map );
     inline void setPins     ( const vector<Point> &pins  );
     inline void setGridMax  ( double x , double y );
     inline void setMaxLayer ( int maxLayer );
-
-    inline void saveNet( Net &net );
 
     bool route();
 
@@ -70,8 +70,10 @@ class MazeRouter
 
     GridMap       map{ 0 , 0 , 1 };
     vector<Point> pins;
-    vector<Path>  paths;
+    vector<Path>  mPaths;
 };
+
+inline const vector<Path>& MazeRouter::paths() { return mPaths; }
 
 inline void MazeRouter::setGridMap  ( const GridMap &map )          { this->map   = map ;  }
 inline void MazeRouter::setGridMap  ( GridMap       &&map )
@@ -80,9 +82,5 @@ inline void MazeRouter::setPins     ( const vector<Point> &pins  )  { this->pins
 inline void MazeRouter::setGridMax  ( double x , double y )
 { gridMax = Point( x , y ); }
 inline void MazeRouter::setMaxLayer ( int maxLayer ) { this->maxLayer = maxLayer; }
-
-inline void MazeRouter::saveNet( Net &net )
-{ for( const Path &path : paths )
-     if( !path.path().empty() ) net.paths().push_back( path ); }
 
 #endif
