@@ -14,7 +14,7 @@ class Grid
 
     enum class Value
     {
-      space     = -2,
+      space,
       obstacle
     };
 
@@ -36,23 +36,22 @@ class Grid
     inline Edge*        edge  ( Direct direct );
     inline const Edge*  edge  ( Direct direct ) const;
 
-    inline void setBlock( const Block *block );
-    inline void setTag  ( int         tag   );
-    inline void setLabel( int         label );
-    inline void setLayer( int         layer );
-    inline void setValue( Value       value );
-    inline void setCost ( CostType    cost  );
+    inline void setBlock( const Block *block  );
+    inline void setTag  ( int         tag     );
+    inline void setLabel( int         label   );
+    inline void setLayer( int         layer   );
+    inline void setValue( Value       value   );
+    inline void setCost ( CostType    cost    );
     inline void setEdge ( Edge* edge , Direct direct );
 
   private:
 
-    const Block *mBlock{ nullptr };
-
-    int       mTag  {};               // use to distinguish net
-    int       mLabel{};               // use to distinguish step
-    int       mLayer{};               // save the last connect layer with minimum cost
-    Value     mValue{ Value::space }; // use to distinguish obstacle
-    CostType  mCost {};
+    const Block *mBlock {};
+    int         mTag    {};               // use to distinguish net
+    int         mLabel  {};               // use to distinguish step
+    int         mLayer  {};               // save the last connect layer with minimum cost
+    Value       mValue  { Value::space }; // use to distinguish obstacle
+    CostType    mCost   {};
 
     std::vector<Edge*> edges{ directNum , nullptr };
 };

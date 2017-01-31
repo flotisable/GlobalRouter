@@ -22,15 +22,15 @@ class Edge
   private:
 
     bool                  mEnabled{ true };
-    int                   mLayer{};
+    int                   mLayer  {};
     std::vector<CostType> mCost;
 };
 
-inline Edge::Edge( int layer, bool enabled ) : mEnabled( enabled )
+inline Edge::Edge( int layer , bool enabled ) : mEnabled{ enabled }
 { mCost.resize( layer , CostType{} ); }
 
-inline bool           Edge::enabled () const            { return mEnabled;      }
-inline int            Edge::layer   () const            { return mLayer;        }
+inline bool           Edge::enabled ()            const { return mEnabled;      }
+inline int            Edge::layer   ()            const { return mLayer;        }
 inline Edge::CostType Edge::cost    ( int layer ) const { return mCost[layer];  }
 
 inline void Edge::setEnabled( bool  enabled ) { mEnabled  = enabled;  }

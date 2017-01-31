@@ -1,4 +1,4 @@
-#ifndef GRIDMAP_H
+﻿#ifndef GRIDMAP_H
 #define GRIDMAP_H
 
 #include <vector>
@@ -12,6 +12,8 @@ class GridMap
   public:
 
     GridMap( int row , int column , int layer );
+    GridMap( const GridMap  &map  );
+    GridMap( GridMap        &&map ) = default;
 
     inline int row   () const;
     inline int col   () const;
@@ -22,7 +24,14 @@ class GridMap
     inline vector<Grid>&        grid( int row );
     inline const vector<Grid>&  grid( int row ) const;
 
+    GridMap& operator=( const GridMap &map  );
+    GridMap& operator=( GridMap       &&map ) = default;
+
   private:
+
+    void initGridMap( int row , int col , int layer );
+    void connectEdges();
+    void copyGridMap( const GridMap &map );
 
     int mRow;
     int mCol;

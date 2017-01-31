@@ -13,22 +13,16 @@ int main()
   const string dirPath      = "/home/flotisable/Collage/ProjectImplimentation/";
   const string displayPath  = dirPath + "display_info/";
   const string twoStagePath = dirPath + "TwoStageFullnets/";
-#else
+#endif
 #ifdef FLOTISABLE_WIN10
   const string dirPath      = "f:/flotisable/Program/c++/Collage/TwoStage/";
   const string displayPath  = dirPath + "display_info/";
   const string twoStagePath = dirPath + "two_stage_fullnets/";
-#else
+#endif
 #ifdef FLOTISABLE_WIN7
   const string dirPath      = "D:/ProjectImplimentation/";
   const string displayPath  = dirPath + "display_info/";
   const string twoStagePath = dirPath + "two_stage_fullnets/";
-#else
-  const string dirPath      = "";
-  const string displayPath  = dirPath + "";
-  const string twoStagePath = dirPath + "";
-#endif
-#endif
 #endif
 
   MazeRouter  routingEngine;

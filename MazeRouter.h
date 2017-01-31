@@ -68,7 +68,7 @@ class MazeRouter
 
     Point gridMax;
 
-    GridMap       map{ 0 , 0 , 1 };
+    GridMap       map{ 1 , 1 , 1 };
     vector<Point> pins;
     vector<Path>  mPaths;
 };
