@@ -41,7 +41,7 @@ class RoutingRegion : public Block
     Point   map ( const Point &point   ) const;
     Point   map ( double x , double y  ) const;
 
-    virtual void  buildSplit() = 0;
+    virtual void  buildSplit();
 
   protected:
 

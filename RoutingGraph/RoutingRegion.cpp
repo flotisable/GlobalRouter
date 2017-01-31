@@ -140,6 +140,35 @@ Point RoutingRegion::map( double x, double y ) const
   return map( Point{ x , y } );
 }
 
+void RoutingRegion::buildSplit()
+{
+  mHsplit.push_back( left   () );
+  mHsplit.push_back( right  () );
+  mVsplit.push_back( top    () );
+  mVsplit.push_back( bottom () );
+
+  for( const Block &block : blocks() )
+  {
+     mHsplit.push_back( block.left   () );
+     mHsplit.push_back( block.right  () );
+     mVsplit.push_back( block.top    () );
+     mVsplit.push_back( block.bottom () );
+  }
+
+  sort( mHsplit.begin() , mHsplit.end() );
+  sort( mVsplit.begin() , mVsplit.end() );
+
+  auto it = unique( mHsplit.begin() , mHsplit.end() );
+
+  mHsplit.resize( distance( mHsplit.begin() , it ) );
+  mHsplit.shrink_to_fit();
+
+  it = unique( mVsplit.begin() , mVsplit.end() );
+
+  mVsplit.resize( distance( mVsplit.begin() , it ) );
+  mVsplit.shrink_to_fit();
+}
+
 
 int RoutingRegion::getIndex( const vector<double> &array , double value ) const
 {

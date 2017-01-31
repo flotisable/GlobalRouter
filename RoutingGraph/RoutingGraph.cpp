@@ -201,11 +201,6 @@ GridMap RoutingGraph::gridMap( int layer ) const
 
 void RoutingGraph::buildSplit()
 {
-  mHsplit.push_back( left   () );
-  mHsplit.push_back( right  () );
-  mVsplit.push_back( top    () );
-  mVsplit.push_back( bottom () );
-
   for( Group &group : groups() )
   {
      group.buildSplit();
@@ -214,27 +209,7 @@ void RoutingGraph::buildSplit()
      mVsplit.push_back( group.top    () );
      mVsplit.push_back( group.bottom () );
   }
-
-  for( const Block &block : blocks() )
-  {
-     mHsplit.push_back( block.left   () );
-     mHsplit.push_back( block.right  () );
-     mVsplit.push_back( block.top    () );
-     mVsplit.push_back( block.bottom () );
-  }
-
-  sort( mHsplit.begin() , mHsplit.end() );
-  sort( mVsplit.begin() , mVsplit.end() );
-
-  auto it = unique( mHsplit.begin() , mHsplit.end() );
-
-  mHsplit.resize( distance( mHsplit.begin() , it ) );
-  mHsplit.shrink_to_fit();
-
-  it = unique( mVsplit.begin() , mVsplit.end() );
-
-  mVsplit.resize( distance( mVsplit.begin() , it ) );
-  mVsplit.shrink_to_fit();
+  RoutingRegion::buildSplit();
 }
 
 vector<Point> RoutingGraph::connectedPin( const Net &net ) const
