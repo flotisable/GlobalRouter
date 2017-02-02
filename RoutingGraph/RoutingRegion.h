@@ -31,6 +31,7 @@ class RoutingRegion : public Block
     virtual vector<Point> connectedPin( const Net     &net      ) const;
     virtual Block*        getBlock    ( const string  &name     );
     virtual const Block*  getBlock    ( const string  &name     ) const;
+    virtual void          buildSplit  ();
 
     double  maxGridWidth  () const;
     double  maxGridHeight () const;
@@ -41,16 +42,16 @@ class RoutingRegion : public Block
     Point   map ( const Point &point   ) const;
     Point   map ( double x , double y  ) const;
 
-    virtual void  buildSplit();
-
-  protected:
-
-    int getIndex( const vector<double> &array , double value ) const;
+  private:
 
     vector<double>  mHsplit;
     vector<double>  mVsplit;
     vector<Block>   mBlocks;
 };
+
+int     getIndex    ( const vector<double> &array , double value );
+double  maxGridSide ( const vector<double> &array );
+int     mapArray    ( const vector<double> &array , double value );
 
 inline RoutingRegion::RoutingRegion() : Block( string() , Block::Type::region ) {}
 

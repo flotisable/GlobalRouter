@@ -143,10 +143,10 @@ GridMap Group::gridMap( int layer ) const
   for( const Symmetry &symmetry : symmetrys() )
      for( const Block &block : symmetry.blocks() )
      {
-        int xMin = getIndex( mHsplit , block.left  () );
-        int xMax = getIndex( mHsplit , block.right () ) - 1;
-        int yMin = getIndex( mVsplit , block.bottom() );
-        int yMax = getIndex( mVsplit , block.top   () ) - 1;
+        int xMin = getIndex( hsplit() , block.left  () );
+        int xMax = getIndex( hsplit() , block.right () ) - 1;
+        int yMin = getIndex( vsplit() , block.bottom() );
+        int yMax = getIndex( vsplit() , block.top   () ) - 1;
 
         for( int i = yMin ; i <= yMax ; ++i )
            for( int j = xMin ; j <= xMax ; ++j )
@@ -185,10 +185,10 @@ void Group::buildSplit()
   for( const Symmetry &symmetry : symmetrys() )
      for( const Block &block : symmetry.blocks() )
      {
-        mHsplit.push_back( block.left   () );
-        mHsplit.push_back( block.right  () );
-        mVsplit.push_back( block.top    () );
-        mVsplit.push_back( block.bottom () );
+        hsplit().push_back( block.left   () );
+        hsplit().push_back( block.right  () );
+        vsplit().push_back( block.top    () );
+        vsplit().push_back( block.bottom () );
      }
   RoutingRegion::buildSplit();
 }

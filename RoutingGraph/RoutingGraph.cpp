@@ -184,10 +184,10 @@ GridMap RoutingGraph::gridMap( int layer ) const
 
   for( const Group &group : groups() )
   {
-     int xMin = getIndex( mHsplit , group.left  () );
-     int xMax = getIndex( mHsplit , group.right () ) - 1;
-     int yMin = getIndex( mVsplit , group.bottom() );
-     int yMax = getIndex( mVsplit , group.top   () ) - 1;
+     int xMin = getIndex( hsplit() , group.left  () );
+     int xMax = getIndex( hsplit() , group.right () ) - 1;
+     int yMin = getIndex( vsplit() , group.bottom() );
+     int yMax = getIndex( vsplit() , group.top   () ) - 1;
      
      for( int i = yMin ; i <= yMax ; ++i )
         for( int j = xMin ; j <= xMax ; ++j )
@@ -204,10 +204,10 @@ void RoutingGraph::buildSplit()
   for( Group &group : groups() )
   {
      group.buildSplit();
-     mHsplit.push_back( group.left   () );
-     mHsplit.push_back( group.right  () );
-     mVsplit.push_back( group.top    () );
-     mVsplit.push_back( group.bottom () );
+     hsplit().push_back( group.left   () );
+     hsplit().push_back( group.right  () );
+     vsplit().push_back( group.top    () );
+     vsplit().push_back( group.bottom () );
   }
   RoutingRegion::buildSplit();
 }
@@ -219,20 +219,20 @@ vector<Point> RoutingGraph::connectedPin( const Net &net ) const
 
   for( const Pin &pin : net.pins() )
   {
-     if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
-          ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
+     if(  ( hsplit().front() <= pin.x() && pin.x() <= hsplit().back() ) &&
+          ( vsplit().front() <= pin.y() && pin.y() <= vsplit().back() ) )
      {
        unsigned int x;
        unsigned int y;
 
-       for( x = 0 ; x < mHsplit.size() ; ++x )
-          if( mHsplit[x] >= pin.x() )
+       for( x = 0 ; x < hsplit().size() ; ++x )
+          if( hsplit()[x] >= pin.x() )
           {
             --x;
             break;
           }
-       for( y = 0 ; y < mVsplit.size() ; ++y )
-          if( mVsplit[y] >= pin.y() )
+       for( y = 0 ; y < vsplit().size() ; ++y )
+          if( vsplit()[y] >= pin.y() )
           {
             --y;
             break;
