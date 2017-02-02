@@ -1,12 +1,12 @@
 #include "RoutingGraph.h"
 
-#include <algorithm>
-#include <cassert>
 #include <string>
-using namespace std;
 
-ostream& operator<<( ostream &out , const RoutingGraph &graph )
+// RoutingGraph non-member functions
+std::ostream& operator<<( std::ostream &out , const RoutingGraph &graph )
 {
+  using std::endl;
+
   out << "[ Graph ]\n";
   out << "Horizontal Split : " << graph.hsplit().size() << endl;
 
@@ -47,19 +47,20 @@ ostream& operator<<( ostream &out , const RoutingGraph &graph )
   return out;
 }
 
-istream& operator>>( istream &in  , RoutingGraph &graph )
+std::istream& operator>>( std::istream &in  , RoutingGraph &graph )
 {
   string word;
 
   graph.setName( "ALL" );
 
+  // read horizontal split
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Horizontal Split : " ) != string::npos )
     {
-      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      const int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
 
       for( int i = 0 ; i < splitNum ; ++i )
       {
@@ -71,14 +72,16 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       break;
     }
   }
+  // end read horizontal split
 
+  // read vertical split
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Vertical Split : " ) != string::npos )
     {
-      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      const int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
 
       for( int i = 0 ; i < splitNum ; ++i )
       {
@@ -90,14 +93,16 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       break;
     }
   }
+  // end read vertical split
 
+  // read groups
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Groups : " ) != string::npos )
     {
-      int groupNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      const int groupNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
 
       for( int i = 0 ; !in.eof() && i < groupNum ; )
       {
@@ -112,7 +117,6 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
           group.setName( word.substr( start , end - start ) );
 
           in >> group;
-
           graph.groups().push_back( group );
           ++i;
         }
@@ -120,7 +124,9 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       break;
     }
   }
+  // end read groups
 
+  // read blocks
   while( !in.eof() )
   {
     getline( in , word );
@@ -139,14 +145,16 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       break;
     }
   }
+  // end read blocks
 
+  // read nets
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Nets : " ) != string::npos )
     {
-      int netNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      const int netNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
 
       for( int i = 0 ; i < netNum ; ++i )
       {
@@ -174,10 +182,12 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       }
     }
   }
+  // end read nets
   return in;
 }
+// end RoutingGraph non-member functions
 
-
+// RoutingGraph member functions
 GridMap RoutingGraph::gridMap( int layer ) const
 {
   GridMap map = RoutingRegion::gridMap( layer );
@@ -188,7 +198,7 @@ GridMap RoutingGraph::gridMap( int layer ) const
      int xMax = getIndex( hsplit() , group.right () ) - 1;
      int yMin = getIndex( vsplit() , group.bottom() );
      int yMax = getIndex( vsplit() , group.top   () ) - 1;
-     
+
      for( int i = yMin ; i <= yMax ; ++i )
         for( int j = xMin ; j <= xMax ; ++j )
         {
@@ -222,32 +232,15 @@ vector<Point> RoutingGraph::connectedPin( const Net &net ) const
      if(  ( hsplit().front() <= pin.x() && pin.x() <= hsplit().back() ) &&
           ( vsplit().front() <= pin.y() && pin.y() <= vsplit().back() ) )
      {
-       unsigned int x;
-       unsigned int y;
-
-       for( x = 0 ; x < hsplit().size() ; ++x )
-          if( hsplit()[x] >= pin.x() )
-          {
-            --x;
-            break;
-          }
-       for( y = 0 ; y < vsplit().size() ; ++y )
-          if( vsplit()[y] >= pin.y() )
-          {
-            --y;
-            break;
-          }
-       
        for( const Group &belongGroup : this->groups() )
           if( belongGroup.getBlock( pin.connect()->name() ) )
           {
             for( const Group *group : groups )
                if( group == &belongGroup ) goto nextPin;
             groups.push_back( &belongGroup );
-            pins.push_back( Point( x , y ) );
-            goto nextPin;
+            break;
           }
-       pins.push_back( Point( x , y ) );
+       pins.push_back( map( pin.x() , pin.y() ) );
      }
      nextPin: continue;
   }
@@ -257,29 +250,19 @@ vector<Point> RoutingGraph::connectedPin( const Net &net ) const
 Block* RoutingGraph::getBlock( const string &name )
 {
   for( Group &group : groups() )
-  {
-    Block *block = group.getBlock( name );
-    
-    if( block ) return block;
-  }
+    if( Block *block = group.getBlock( name ) ) return block;
   return RoutingRegion::getBlock( name );
 }
 
 const Block* RoutingGraph::getBlock( const string &name ) const
 {
-  for( const Group &group : groups() )
-  {
-    const Block *block = group.getBlock( name );
-
-    if( block ) return block;
-  }
-  return RoutingRegion::getBlock( name );
+  return const_cast<RoutingGraph*>( this )->getBlock( name );
 }
 
 RoutingRegion* RoutingGraph::getRegion( const string &name )
 {
   if( this->name() == name ) return this;
-  
+
   for( Group &group : groups() )
      if( group.name() == name ) return &group;
 
@@ -288,12 +271,7 @@ RoutingRegion* RoutingGraph::getRegion( const string &name )
 
 const RoutingRegion* RoutingGraph::getRegion( const string &name ) const
 {
-  if( this->name() == name ) return this;
-
-  for( const Group &group : groups() )
-     if( group.name() == name ) return &group;
-
-  return nullptr;
+  return const_cast<RoutingGraph*>( this )->getRegion( name );
 }
 
 Net* RoutingGraph::getNet( const string &name )
@@ -306,10 +284,7 @@ Net* RoutingGraph::getNet( const string &name )
 
 const Net* RoutingGraph::getNet( const string &name ) const
 {
-  for( const Net &net : nets() )
-     if( net.name() == name ) return &net;
-
-  return nullptr;
+  return const_cast<RoutingGraph*>( this )->getNet( name );
 }
 
 const Block& RoutingGraph::operator=( const Block &block )
@@ -320,3 +295,4 @@ const Block& RoutingGraph::operator=( const Block &block )
 
   return block;
 }
+// end RoutingGraph member functions

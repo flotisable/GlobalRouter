@@ -8,6 +8,34 @@
 
 const Point RoutingRegion::nullPoint = Point{ -1 , -1 };
 
+// RoutingRegion non-member functions
+int getIndex( const vector<double> &array , double value )
+{
+  for( int i = 0 ; i < static_cast<int>( array.size() ) ; ++i )
+     if( array[i] == value ) return i;
+  return -1;
+}
+
+double maxGridSide( const vector<double> &array )
+{
+  double maxSide = 0;
+
+  for( unsigned int i = 0 ; i < array.size() - 1 ; ++i )
+     maxSide = std::max( maxSide , array[i+1] - array[i] );
+
+  return maxSide;
+}
+
+int mapArray( const vector<double>& array , double value )
+{
+  for( unsigned int i = 0 ; i < array.size() ; ++i )
+     if( array[i] > value ) return --i;
+
+  return -1;
+}
+// end RoutingRegion non-member functions
+
+// RoutingRegion member functions
 GridMap RoutingRegion::gridMap( int layer ) const
 {
   assert( mVsplit.size() > 0 && mHsplit.size() > 0 );
@@ -153,29 +181,4 @@ Point RoutingRegion::map( double x, double y ) const
     return Point{ static_cast<double>( mapX( x ) ) , static_cast<double>( mapY( y ) ) };
   return nullPoint;
 }
-
-
-int getIndex( const vector<double> &array , double value )
-{
-  for( int i = 0 ; i < static_cast<int>( array.size() ) ; ++i )
-     if( array[i] == value ) return i;
-  return -1;
-}
-
-double maxGridSide( const vector<double> &array )
-{
-  double maxSide = 0;
-
-  for( unsigned int i = 0 ; i < array.size() - 1 ; ++i )
-     maxSide = std::max( maxSide , array[i+1] - array[i] );
-
-  return maxSide;
-}
-
-int mapArray( const vector<double>& array , double value )
-{
-  for( unsigned int i = 0 ; i < array.size() ; ++i )
-     if( array[i] > value ) return --i;
-
-  return -1;
-}
+// end RoutingRegion member functions

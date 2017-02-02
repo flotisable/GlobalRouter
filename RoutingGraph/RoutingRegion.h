@@ -49,10 +49,13 @@ class RoutingRegion : public Block
     vector<Block>   mBlocks;
 };
 
+// RoutingRegion non-member functions 
 int     getIndex    ( const vector<double> &array , double value );
 double  maxGridSide ( const vector<double> &array );
 int     mapArray    ( const vector<double> &array , double value );
+// end RoutingRegion non-member functions
 
+// RoutingRegion inline member functions
 inline RoutingRegion::RoutingRegion() : Block( string() , Block::Type::region ) {}
 
 inline vector<double>&        RoutingRegion::hsplit()       { return mHsplit; }
@@ -61,5 +64,6 @@ inline vector<double>&        RoutingRegion::vsplit()       { return mVsplit; }
 inline const vector<double>&  RoutingRegion::vsplit() const { return mVsplit; }
 inline vector<Block>&         RoutingRegion::blocks()       { return mBlocks; }
 inline const vector<Block>&   RoutingRegion::blocks() const { return mBlocks; }
+// end RoutingRegion inline member functions
 
 #endif

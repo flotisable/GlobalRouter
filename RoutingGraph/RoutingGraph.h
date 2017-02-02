@@ -39,12 +39,16 @@ class RoutingGraph : public RoutingRegion
     vector<Group> mGroups;
 };
 
+// RoutingGraph non-member functions
 std::ostream& operator<<( std::ostream &out , const RoutingGraph  &graph );
 std::istream& operator>>( std::istream &in  , RoutingGraph        &graph );
+// end RoutingGraph non-member functions
 
+// RoutingGraph inline member functions
 inline vector<Net>&         RoutingGraph::nets  ()        { return mNets;    }
 inline const vector<Net>&   RoutingGraph::nets  () const  { return mNets;    }
 inline vector<Group>&       RoutingGraph::groups()        { return mGroups;  }
 inline const vector<Group>& RoutingGraph::groups() const  { return mGroups;  }
+// end RoutingGraph inline member functions
 
 #endif
