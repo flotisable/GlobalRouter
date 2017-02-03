@@ -17,7 +17,7 @@ class Block : public Rectangle
       region
     };
 
-    inline Block( const string &name = string() , Type type = Type::block );
+    inline Block( const string &name = string{} , Type type = Type::block );
     
     inline const string&  name() const;
     inline Type           type() const;
