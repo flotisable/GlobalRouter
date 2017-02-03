@@ -13,7 +13,7 @@ class Symmetry
 {
   public:
   
-    inline Symmetry( const string &name = string{} );
+    inline explicit Symmetry( const string &name = string{} );
 
     inline const string&        name  () const;
     inline vector<Block>&       blocks();

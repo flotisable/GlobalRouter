@@ -9,7 +9,7 @@ class Edge
 
     using CostType = double;
 
-    inline Edge( int layer = 1 , bool enabled = true );
+    inline explicit Edge( int layer = 1 , bool enabled = true );
 
     inline bool     enabled() const;
     inline int      layer  () const;
@@ -26,6 +26,7 @@ class Edge
     std::vector<CostType> mCost;
 };
 
+// Edge inline member functions
 inline Edge::Edge( int layer , bool enabled ) : mEnabled{ enabled }
 { mCost.resize( layer , CostType{} ); }
 
@@ -37,5 +38,6 @@ inline void Edge::setEnabled( bool  enabled ) { mEnabled  = enabled;  }
 inline void Edge::setLayer  ( int   layer   ) { mLayer    = layer;    }
 inline void Edge::setCost   ( const Edge::CostType &cost , int layer )
 { mCost[layer] = cost; }
+// end Edge inline member functions
 
 #endif // EDGE_H

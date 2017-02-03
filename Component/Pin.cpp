@@ -3,7 +3,7 @@
 // Pin non-member functions
 std::istream& operator>>( std::istream &in , Pin &pin )
 {
-  Block   *block = new Block;
+  Block   *block = new Block{};
   string  name;
   Point   point;
 

@@ -56,6 +56,7 @@ class Grid
     std::vector<Edge*> edges{ directNum , nullptr };
 };
 
+// Grid inline member functions
 inline const Block*   Grid::block () const { return mBlock; }
 inline int            Grid::tag   () const { return mTag;   }
 inline int            Grid::label () const { return mLabel; }
@@ -72,5 +73,6 @@ inline void Grid::setLayer( int         layer   )               { mLayer        
 inline void Grid::setValue( Value       value   )               { mValue        = value;  }
 inline void Grid::setCost ( CostType    cost    )               { mCost         = cost;   }
 inline void Grid::setEdge ( Edge *edge , Grid::Direct direct )  { edges[direct] = edge;   }
+// end Grid inline member functions
 
 #endif
