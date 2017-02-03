@@ -80,3 +80,19 @@ void GridMap::copyGridMap( const GridMap &map )
   edges   = map.edges;
   connectEdges();
 }
+
+void outputGridMapValue( std::ostream &out , const GridMap &map )
+{
+  for( int i = map.row() - 1 ; i >=0 ; --i )
+  {
+     for( const Grid &grid : map.grid( i ) )
+        switch( grid.value() )
+        {
+          case Grid::Value::space:    out << "0"; break;
+          case Grid::Value::obstacle: out << "1"; break;
+          default:                                break;
+        }
+     out << std::endl;
+  }
+  out << std::endl;
+}

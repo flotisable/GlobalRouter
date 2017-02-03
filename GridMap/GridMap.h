@@ -2,6 +2,7 @@
 #define GRIDMAP_H
 
 #include <vector>
+#include <ostream>
 using std::vector;
 
 #include "Grid.h"
@@ -41,6 +42,11 @@ class GridMap
     vector<Edge>          edges;
 };
 
+// GridMap non-member functions
+void outputGridMapValue( std::ostream &out , const GridMap &map );
+// end GridMap non-member functions
+
+// GridMap inline member functions
 inline int GridMap::row   () const { return mRow;   }
 inline int GridMap::col   () const { return mCol;   }
 inline int GridMap::layer () const { return mLayer; }
@@ -51,5 +57,6 @@ inline const Grid&          GridMap::grid( int row , int column ) const
 { return grids[row][column]; }
 inline vector<Grid>&        GridMap::grid( int row )        { return grids[row]; }
 inline const vector<Grid>&  GridMap::grid( int row ) const  { return grids[row]; }
+// end GridMap inline member functions
 
 #endif // GRIDMAP_H

@@ -19,19 +19,7 @@ std::ostream& operator<<( std::ostream &out , const RoutingGraph &graph )
   out << endl;
 
   out << "Grids :\n";
-  GridMap map = graph.gridMap();
-  for( int i = map.row() - 1 ; i >=0 ; --i )
-  {
-     for( const Grid &grid : map.grid( i ) )
-        switch( grid.value() )
-        {
-          case Grid::Value::space:    out << "0"; break;
-          case Grid::Value::obstacle: out << "1"; break;
-          default:                                break;
-        }
-     out << endl;
-  }
-  out << endl;
+  outputGridMapValue( out , graph.gridMap() );
 
   out << "Groups : " << graph.groups().size() << endl;
   for( const Group &group : graph.groups() ) out << group << endl;

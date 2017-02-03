@@ -1,57 +1,47 @@
 #include "Group.h"
 
 #include <iostream>
-#include <cassert>
 #include <algorithm>
-using namespace std;
 
-ostream& operator<<( ostream &out , const Group &group )
+// Group non-member functions
+std::ostream& operator<<( std::ostream &out , const Group &group )
 {
+  using std::endl;
+
   out << "[ Group : " << group.name() << " ]\n";
 
   out << "Horizontal Split : " << group.hsplit().size() << endl;
   for( double point : group.hsplit() ) out << point << endl;
   out << endl;
-  
+
   out << "Vertical Split : " << group.vsplit().size() << endl;
   for( double point : group.vsplit() ) out << point << endl;
   out << endl;
-  
+
   out << "Grids :\n";
-  GridMap map = group.gridMap();
-  for( int i = map.row() - 1 ; i >=0 ; --i )
-  {
-     for( const Grid &grid : map.grid( i ) )
-        switch( grid.value() )
-        {
-          case Grid::Value::space:    out << "0"; break;
-          case Grid::Value::obstacle: out << "1"; break;
-          default:                                break;
-        }
-     out << endl;
-  }
-  out << endl;
+  outputGridMapValue( out , group.gridMap() );
 
   out << "Symmetrys : " << group.symmetrys().size() << endl;;
   for( const Symmetry& symmetry : group.symmetrys() ) out << symmetry << endl;
-  
+
   out << "Blocks : " << group.blocks().size() << endl;
   for( const Block& block : group.blocks() ) out << block << endl;
 
   return out;
 }
 
-istream& operator>>( istream &in  , Group &group )
+std::istream& operator>>( std::istream &in  , Group &group )
 {
   string word;
 
+  // read horizontal split
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Horizontal Split : " ) != string::npos )
     {
-      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      const int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
 
       for( int i = 0 ; i < splitNum ; ++i )
       {
@@ -63,14 +53,16 @@ istream& operator>>( istream &in  , Group &group )
       break;
     }
   }
+  // end read horizontal split
 
+  // read vertical split
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Vertical Split : " ) != string::npos )
     {
-      int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      const int splitNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
 
       for( int i = 0 ; i < splitNum ; ++i )
       {
@@ -82,14 +74,16 @@ istream& operator>>( istream &in  , Group &group )
       break;
     }
   }
+  // end read vertical split
 
+  // read symmetrys
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Symmetrys : " ) != string::npos )
     {
-      int SymmetryNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      const int SymmetryNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
 
       for( int i = 0 ; !in.eof() && i < SymmetryNum ; )
       {
@@ -112,14 +106,16 @@ istream& operator>>( istream &in  , Group &group )
       break;
     }
   }
+  // end read symmetrys
 
+  // read blocks
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Blocks : " ) != string::npos )
     {
-      int blockNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
+      const int blockNum = stoi( word.substr( word.rfind( ' ' ) + 1 ) );
 
       for( int i = 0 ; i < blockNum ; ++i )
       {
@@ -131,11 +127,13 @@ istream& operator>>( istream &in  , Group &group )
       break;
     }
   }
+  // end read blocks
 
   return in;
 }
+// end Group non-member functions
 
-
+// Group member functions
 GridMap Group::gridMap( int layer ) const
 {
   GridMap map = RoutingRegion::gridMap( layer );
@@ -161,23 +159,13 @@ GridMap Group::gridMap( int layer ) const
 Block* Group::getBlock( const string &name )
 {
   for( Symmetry &symmetry : symmetrys() )
-  {
-    Block *block = symmetry.getBlock( name );
-    
-    if( block ) return block;
-  }
+    if( Block *block = symmetry.getBlock( name ) ) return block;
   return RoutingRegion::getBlock( name );
 }
 
 const Block* Group::getBlock( const string &name ) const
 {
-  for( const Symmetry &symmetry : symmetrys() )
-  {
-     const Block *block = symmetry.getBlock( name );
-
-     if( block ) return block;
-  }
-  return RoutingRegion::getBlock( name );
+  return const_cast<Group*>( this )->getBlock( name );
 }
 
 void Group::buildSplit()
@@ -192,3 +180,4 @@ void Group::buildSplit()
      }
   RoutingRegion::buildSplit();
 }
+// end Group member functions
