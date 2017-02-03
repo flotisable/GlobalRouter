@@ -1,7 +1,6 @@
 #include "Group.h"
 
 #include <iostream>
-#include <algorithm>
 
 // Group non-member functions
 std::ostream& operator<<( std::ostream &out , const Group &group )
