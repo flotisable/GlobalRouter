@@ -1,5 +1,6 @@
 #include "Block.h"
 
+// Block non-member functions
 std::ostream& operator<<( std::ostream &out , const Block &block )
 {
   out << block.name() << " ";
@@ -25,3 +26,4 @@ std::istream& operator>>( std::istream &in , Block &block )
 
   return in;
 }
+// end Block non-member functions

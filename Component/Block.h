@@ -5,7 +5,6 @@
 #include <iostream>
 using std::string;
 
-#include "../Graphic/Point.h"
 #include "../Graphic/Rectangle.h"
 
 class Block : public Rectangle
@@ -32,9 +31,12 @@ class Block : public Rectangle
     Type    mType;
 };
 
+// Block non-member functions
 std::ostream& operator<<( std::ostream &out , const Block &block );
 std::istream& operator>>( std::istream &in  , Block &block );
+// end Block non-member functions
 
+// Block inline member functions
 inline Block::Block( const string &name , Type type ) : mName( name ) , mType( type ) {}
 
 inline const string&  Block::name() const { return mName; }
@@ -42,5 +44,6 @@ inline Block::Type    Block::type() const { return mType; }
 
 inline void Block::setName( const string  &name ) { mName = name; }
 inline void Block::setType( Type          type  ) { mType = type; }
+// end Block inline member functions
 
 #endif
