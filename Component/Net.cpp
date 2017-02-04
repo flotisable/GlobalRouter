@@ -1,15 +1,16 @@
 #include "Net.h"
 
+// Net non-member functions
 std::ostream& operator<<( std::ostream &out , const Net &net )
 {
   using std::endl;
 
   out << net.name() << " " << net.currentDensity() << " "
       << net.pins().size() << " "<< net.paths().size() << endl;
-  
+
   for( const Pin &pin : net.pins() ) out << pin << " ";
   out << endl;
-  
+
   for( const Path &path : net.paths() ) out << path << endl;
 
   return out;
@@ -49,3 +50,4 @@ std::istream& operator>>( std::istream &in  , Net &net )
   }
   return in;
 }
+// end Net non-member functions

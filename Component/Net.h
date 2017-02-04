@@ -14,7 +14,7 @@ class Net
 {
   public:
 
-    inline Net( const string &name = string() );
+    inline explicit Net( const string &name = string() );
     inline Net( const string &name , int currentDensity );
 
     inline const string&        name          () const;
@@ -36,12 +36,15 @@ class Net
     vector<Path>  mPaths;
 };
 
+// Net non-member functions
 std::ostream& operator<<( std::ostream &out , const Net &net );
 std::istream& operator>>( std::istream &in  , Net       &net );
+// end Net non-member functions
 
-inline Net::Net( const string &name ) : mName( name ) {}
+// Net inline member functions
+inline Net::Net( const string &name ) : mName{ name } {}
 inline Net::Net( const string &name , int currentDensity )
-  : mName( name ) , mCurrentDensity( currentDensity ) {}
+  : mName{ name } , mCurrentDensity{ currentDensity } {}
 
 inline const string&        Net::name           () const  { return mName;           }
 inline int                  Net::currentDensity () const  { return mCurrentDensity; }
@@ -54,5 +57,6 @@ inline void Net::setName          ( const string  &name )
 { mName = name; }
 inline void Net::setCurrentDensity( int currentDensity )
 { mCurrentDensity = currentDensity; }
+// end Net inline member functions
 
 #endif
