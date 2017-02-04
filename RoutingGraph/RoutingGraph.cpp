@@ -238,7 +238,11 @@ vector<Point> RoutingGraph::connectedPin( const Net &net ) const
 Block* RoutingGraph::getBlock( const string &name )
 {
   for( Group &group : groups() )
-    if( Block *block = group.getBlock( name ) ) return block;
+  {
+    Block *block = group.getBlock( name );
+
+    if( block ) return block;
+  }
   return RoutingRegion::getBlock( name );
 }
 

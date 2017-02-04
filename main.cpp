@@ -33,8 +33,7 @@ int main()
 
   try
   {
-    router.readBlock( displayPath + "display0.txt" , twoStagePath + "test.constraints" );
-    router.readNets( twoStagePath + "new_final.nets" );
+    router.read( twoStagePath + "test.constraints" , displayPath + "display0.txt" , twoStagePath + "new_final.nets" );
     router.route();
     router.outputData( dirPath + "routingReport.txt" );
   }

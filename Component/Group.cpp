@@ -158,7 +158,11 @@ GridMap Group::gridMap( int layer ) const
 Block* Group::getBlock( const string &name )
 {
   for( Symmetry &symmetry : symmetrys() )
-    if( Block *block = symmetry.getBlock( name ) ) return block;
+  {
+     Block *block = symmetry.getBlock( name );
+
+     if( block ) return block;
+  }
   return RoutingRegion::getBlock( name );
 }
 

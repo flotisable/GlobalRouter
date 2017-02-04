@@ -29,16 +29,17 @@ class Router
     inline void setRouter   ( RoutingEngine*  router    );
     inline void setMaxLayer ( int             maxLayer  );
 
-    void readBlock( const string &fileName , const string &groupFileName );
-    void readNets ( const string &fileName );
-    void route    ();
-    void outputData( const string &fileName ) const;
+    void read       ( const string &groupFileName , const string &blockFileName , const string &netFileName );
+    void route      ();
+    void outputData ( const string &fileName ) const;
 
   private:
 
     const double unit = 0.01; // 0.01u
 
     void readGroup( const string &fileName );
+    void readBlock( const string &fileName );
+    void readNets ( const string &fileName );
 
     vector<RoutingRegion*>  getRegions();
     void                    initRouter( const RoutingRegion *region , int maxLayer );
@@ -50,7 +51,7 @@ class Router
     RoutingEngine *mRouter;
 
     RoutingGraph  graph;
-    int           maxLayer = 0;
+    int           maxLayer{};
 };
 
 // for exceptions
@@ -78,17 +79,18 @@ class Router::RoutingEngineError
 // end for exceptions
 
 // Router public inline member functions
-inline Router::Router( RoutingEngine* router ) : mRouter( router ) {}
+inline Router::Router( RoutingEngine* router ) : mRouter{ router } {}
 
 inline Router::RoutingEngine* Router::router() const { return mRouter; }
 
 inline void Router::setRouter   ( RoutingEngine*  router    ) { mRouter         = router;   }
-inline void Router::setMaxLayer ( int             maxLayer  ) { this->maxLayer  = maxLayer; }
+inline void Router::setMaxLayer ( int             maxLayer  )
+{ if( maxLayer < 0 ) throw std::invalid_argument{ "Router maxlayer < 0" }; this->maxLayer  = maxLayer; }
 // end Router public inline member functions
 
 // Router::RoutingEngineError public inline member functions
 inline Router::RoutingEngineError::RoutingEngineError( const string &engineName , const string &errorName )
-  : engine( engineName ) , error( errorName ) {}
+  : engine{ engineName } , error{ errorName } {}
 
 inline const string& Router::RoutingEngineError::engineName () const { return engine; }
 inline const string& Router::RoutingEngineError::errorName  () const { return error;  }

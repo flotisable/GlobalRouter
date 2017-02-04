@@ -7,18 +7,116 @@
 #include <cfloat>
 #include <algorithm>
 #include <map>
+#include <regex>
 using namespace std;
 
 #include "Component/Block.h"
 
-void Router::readBlock( const string &fileName , const string &groupFileName )
+// Router public member functions
+void Router::read( const string &groupFileName , const string &blockFileName , const string &netFileName )
+{
+  readGroup ( groupFileName );
+  readBlock ( blockFileName );
+  readNets  ( netFileName   );
+}
+
+void Router::route()
+{
+  try
+  {
+    if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return;
+
+    for( RoutingRegion *region : getRegions() )
+    {
+       cout << region->name() << endl;
+
+       for( int layer = 0 ; layer <= maxLayer ; ++layer )
+       {
+          initRouter( region , layer );
+
+          for( Net &net : graph.nets() )
+          {
+             if( !region->netConnected( net ) ) continue;
+
+             cout << net.name() << endl;
+             mRouter->setPins( sortPins( movePins( region->connectedPin( net ) , region , net ) ) );
+             if( !mRouter->route() ) goto nextLayer;
+             if( netRouted( net , region ) ) continue;
+             saveNet( net , region );
+          }
+          break;
+          nextLayer: if( layer >= maxLayer ) throw NetCannotRoute();
+      }
+    }
+  }
+  catch( const MazeRouter::BacktraceError &error )
+  {
+    throw RoutingEngineError( "MazeRouter" , "BacktraceError" );
+  }
+}
+
+void Router::outputData( const string &fileName ) const
+{
+  ofstream file( fileName );
+  
+  file << graph;
+}
+// end Router public member functions
+
+// Router private member functions
+void Router::readGroup( const string &fileName )
+{
+  ifstream          file( fileName );
+  string            buffer;
+  vector<Symmetry>  symmetrys;
+
+  const regex   symmetryPattern { R"(Symmetry (S[[:digit:]]+) [[:digit:]]+[[:blank:]]*)" };
+  const regex   groupPattern    { R"(Group (G[[:digit:]]+) ([[:digit:]]+) [NP][[:blank:]]*)" };
+  smatch        match;
+
+  if( !file.is_open() ) throw FileOpenError{ fileName };
+
+  while( !file.eof() )
+  {
+    getline( file , buffer );
+
+    if      ( regex_match( buffer , match , symmetryPattern ) ) // read symmetry
+    {
+      Symmetry symmetry;
+
+      symmetry.setName( match[1] );
+      file >> buffer; symmetry.blocks().push_back( Block{ buffer } );
+      file >> buffer; symmetry.blocks().push_back( Block{ buffer } );
+
+      symmetrys.push_back( symmetry );
+    }
+    else if ( regex_match( buffer , match , groupPattern ) ) // read group
+    {
+      Group     group;
+      const int blockNum = stoi( match[2] );
+
+      group.setName( match[1] );
+
+      for( int i = 0 ; i < blockNum ; ++i )
+      {
+         file >> buffer;
+
+         if( regex_match( buffer , match , regex{ R"(S([[:digit:]]+))" } ) )
+           group.symmetrys().push_back( symmetrys[stoi( match[1] )-1] );
+         else
+           group.blocks().push_back( Block{ buffer } );
+      }
+      graph.groups().push_back( group );
+    }
+  }
+}
+
+void Router::readBlock( const string &fileName )
 {
   ifstream  file( fileName );
   int       groupIndex = 0;
 
   if( !file.is_open() ) throw FileOpenError( fileName );
-
-  readGroup( groupFileName );
 
   while( !file.eof() )
   {
@@ -35,7 +133,7 @@ void Router::readBlock( const string &fileName , const string &groupFileName )
       else file.putback( c );
     }
     // end 判斷註解 test if it is comment
-    
+
     if( isdigit( file.peek() ) )
     {
       Block  block;
@@ -134,105 +232,6 @@ void Router::readNets( const string &fileName )
       }
       
       graph.nets().push_back( net );
-    }
-  }
-}
-
-void Router::route()
-{
-  try
-  {
-    if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return;
-
-    for( RoutingRegion *region : getRegions() )
-    {
-       cout << region->name() << endl;
-
-       for( int layer = 0 ; layer <= maxLayer ; ++layer )
-       {
-          initRouter( region , layer );
-
-          for( Net &net : graph.nets() )
-          {
-             if( !region->netConnected( net ) ) continue;
-
-             cout << net.name() << endl;
-             mRouter->setPins( sortPins( movePins( region->connectedPin( net ) , region , net ) ) );
-             if( !mRouter->route() ) goto nextLayer;
-             if( netRouted( net , region ) ) continue;
-             saveNet( net , region );
-          }
-          break;
-          nextLayer: if( layer >= maxLayer ) throw NetCannotRoute();
-      }
-    }
-  }
-  catch( const MazeRouter::BacktraceError &error )
-  {
-    throw RoutingEngineError( "MazeRouter" , "BacktraceError" );
-  }
-}
-
-void Router::outputData( const string &fileName ) const
-{
-  ofstream file( fileName );
-  
-  file << graph;
-}
-
-
-void Router::readGroup( const string &fileName )
-{
-  ifstream          file( fileName );
-  string            word;
-  vector<Symmetry>  symmetrys;
-
-  if( !file.is_open() ) throw FileOpenError( fileName );
-
-  while( !file.eof() )
-  {
-    file >> word;
-    
-    if      ( word == "Symmetry" )
-    {
-      Symmetry symmetry;
-
-      file >> word;
-
-      if( word[0] != 'S' )  continue;
-      symmetry.setName( word );
-      file >> word; // pass one word
-      file >> word; symmetry.blocks().push_back( Block( word ) );
-      file >> word; symmetry.blocks().push_back( Block( word ) );
-
-      symmetrys.push_back( symmetry );
-    }
-    else if ( word == "Group" )
-    {
-      Group group;
-      int   blockNum;
-      
-      file >> word;
-      
-      if( word[0] != 'G' )  continue;
-      group.setName( word );
-      
-      file >> blockNum >> word; // pass one word
-      
-      for( int i = 0 ; i < blockNum ; ++i )
-      {
-         file >> word;
-         
-         if( word[0] == 'S' )
-         {
-           int index = stoi( word.substr( 1 ) ) - 1;
-           
-           group.symmetrys().push_back( symmetrys[index] );
-         }
-         else
-           group.blocks().push_back( Block( word ) );
-      }
-      graph.groups().push_back( group );
     }
   }
 }
@@ -361,3 +360,4 @@ void Router::saveNet( Net &net , RoutingRegion *region )
   for( Path &path : net.paths() )
      if( !path.belongRegion() ) path.setBelongRegion( region );
 }
+// end Router private member functions
