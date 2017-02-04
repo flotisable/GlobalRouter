@@ -120,7 +120,7 @@ void Router::readBlock( const string &fileName )
   smatch    match;
   int       groupIndex = 0;
 
-  if( !file.is_open() ) throw FileOpenError( fileName );
+  if( !file.is_open() ) throw FileOpenError{ fileName };
 
   while( !file.eof() )
   {
@@ -164,46 +164,41 @@ void Router::readBlock( const string &fileName )
 
 void Router::readNets( const string &fileName )
 {
+  const regex header{ R"(NetDegree[[:s:]]+:[[:s:]]+([[:d:]]+)[[:s:]]+([[:alnum:]!]+)[[:s:]]+([[:d:]]+).*)" };
+  const regex data  { R"([[:s:]]*([[:alnum:]]+)[[:s:]]+O :[[:s:]]+([-[:d:]]+)[[:s:]]+([-[:d:]]+).*)" };
+
   ifstream  file( fileName );
-  string    word;
-  
-  if( !file.is_open() ) throw FileOpenError( fileName );
-  
+  string    buffer;
+  smatch    match;
+
+  if( !file.is_open() ) throw FileOpenError{ fileName };
+
   while( !file.eof() )
   {
-    file >> word;
+    getline( file , buffer );
     
-    if( word == "NetDegree" )
+    if( regex_match( buffer , match , header ) )
     {
-      Net net;
-      int currentDensity;
-      int pinNum;
-      
-      file >> word >> pinNum >> word >> currentDensity;
-      net.setName           ( word );
-      net.setCurrentDensity ( currentDensity );
-      
-      for( int i = 0 ; i < pinNum ; i++ )
+      Net       net( match[2] , stoi( match[3] ) );
+      const int pinNum = stoi( match[1] );
+
+      for( int i = 0 ; i < pinNum ; ++i )
       {
          Pin    pin;
-         string blockName;
-         Block* block;
-         double x;
-         double y;
+         Block  *block;
 
-         file >> blockName >> word >> word >> x >> y;
-         
-         pin.set( x * unit , y * unit );
+         getline( file , buffer );
+         regex_match( buffer , match , data );
 
-         if( ( block = graph.getBlock( blockName ) ) )
+         pin.set( stod( match[2] ) * unit , stod( match[3] ) * unit );
+
+         if( ( block = graph.getBlock( match[1] ) ) )
          {
            pin.setConnect( block );
            pin += block->center();
          }
-         
          net.pins().push_back( pin );
       }
-      
       graph.nets().push_back( net );
     }
   }
