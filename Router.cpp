@@ -70,8 +70,8 @@ void Router::readGroup( const string &fileName )
   string            buffer;
   vector<Symmetry>  symmetrys;
 
-  const regex   symmetryPattern { R"(Symmetry (S[[:digit:]]+) [[:digit:]]+[[:blank:]]*)" };
-  const regex   groupPattern    { R"(Group (G[[:digit:]]+) ([[:digit:]]+) [NP][[:blank:]]*)" };
+  const regex   symmetryPattern { R"(Symmetry (S[[:d:]]+) [[:d:]]+[[:s:]]*)" };
+  const regex   groupPattern    { R"(Group (G[[:d:]]+) ([[:d:]]+) [NP][[:s:]]*)" };
   smatch        match;
 
   if( !file.is_open() ) throw FileOpenError{ fileName };
@@ -101,7 +101,7 @@ void Router::readGroup( const string &fileName )
       {
          file >> buffer;
 
-         if( regex_match( buffer , match , regex{ R"(S([[:digit:]]+))" } ) )
+         if( regex_match( buffer , match , regex{ R"(S([[:d:]]+))" } ) )
            group.symmetrys().push_back( symmetrys[stoi( match[1] )-1] );
          else
            group.blocks().push_back( Block{ buffer } );
@@ -113,78 +113,51 @@ void Router::readGroup( const string &fileName )
 
 void Router::readBlock( const string &fileName )
 {
+  const regex pattern{ R"(([[:d:]]+) ([[:d:]]+) ([[:d:]]+) ([[:d:]]+) ([[:alnum:]]+).*)" };
+
   ifstream  file( fileName );
+  string    buffer;
+  smatch    match;
   int       groupIndex = 0;
 
   if( !file.is_open() ) throw FileOpenError( fileName );
 
   while( !file.eof() )
   {
-    // 判斷註解 test if it is comment
-    if( file.peek() == '/' )
-    {
-      char c = file.get();
+    getline( file , buffer );
 
-      if( file.peek() == '/' )
-      {
-        while( file.get() != '\n' );
-        continue;
-      }
-      else file.putback( c );
-    }
-    // end 判斷註解 test if it is comment
-
-    if( isdigit( file.peek() ) )
+    if( regex_match( buffer , match , pattern ) )
     {
-      Block  block;
-      double lbX;
-      double lbY;
-      double height;
-      double width;
-      string name;
-    
-      file >> lbX >> lbY >> width >> height >> name;
+      Block  block( match[5] );
       
       /*
         因為 Block 設計的關係，要先設定 LeftBottom 再設定 Height , Width 才不會出問題
         because of the design of Block, we need to setup LeftBottom first, and then
         setup Height and Width
       */
-      block.setName       ( name );
-      block.setLeftBottom ( lbX * unit , lbY *unit );
-      block.setHeight     ( height * unit );
-      block.setWidth      ( width * unit );
+      block.setLeftBottom ( stod( match[1] ) * unit , stod( match[2] ) * unit );
+      block.setWidth      ( stod( match[3] ) * unit );
+      block.setHeight     ( stod( match[4] ) * unit );
 
-      if( name == "ALL" )
+      if( block.name() == "ALL" )
       {
         graph = block;
       }
-      else if( name[0] == 'G' ) // 設定 Group set group
+      else if( block.name()[0] == 'G' ) // 設定 Group set group
       {
         graph.groups()[groupIndex].setLeftBottom( block.leftBottom() );
         graph.groups()[groupIndex].setRightTop  ( block.rightTop  () );
-        
+
         ++groupIndex;
       }
       else // 偵測 Block 是否屬於 Group  find if block is contained in a group
       {
-        for( Group &group : graph.groups() )
-        {
-           Block* blockPtr = group.getBlock( block.name() );
+        Block *blockPtr = graph.getBlock( block.name() );
 
-           if( blockPtr )
-           {
-             *blockPtr = block;
-             goto match;
-           }
-        }
-        graph.blocks().push_back( block );
+        if( blockPtr )  *blockPtr = block;
+        else            graph.blocks().push_back( block );
       }
     }
-    match:
-
-    while( file.get() != '\n' )
-      if( file.eof() ) break;
   }
   graph.buildSplit();
 }
