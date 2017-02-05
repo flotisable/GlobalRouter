@@ -1,16 +1,10 @@
 #include "Router.h"
 
 #include <fstream>
-#include <string>
-#include <cctype>
-#include <iostream>
-#include <cfloat>
+#include <ostream>
 #include <algorithm>
 #include <map>
 #include <regex>
-using namespace std;
-
-#include "Component/Block.h"
 
 // Router non-member functions
 vector<const RoutingRegion*> getRegions( const RoutingGraph &graph )
@@ -27,7 +21,7 @@ vector<Point> movePins( vector<Point> pins , const RoutingRegion *region , const
 {
   auto compare = []( const Point &front , const Point &back ) { return ( front.x() < back.x() ); };
 
-  map<Point,Pin,decltype( compare )> table( compare );
+  std::map<Point,Pin,decltype( compare )> table( compare );
 
   for( const Pin &pin : net.pins() ) table[region->map( pin.x() , pin.y() )] = pin;
 
@@ -68,7 +62,7 @@ vector<Point> sortPins( vector<Point> pins )
   for( unsigned int i = 1 ; i < cost.size() ; ++i )
      if( cost[i] < cost[firstIndex] ) firstIndex = i;
 
-  swap( pins[0] , pins[firstIndex] );
+  std::swap( pins[0] , pins[firstIndex] );
   // end find first pin to be route
 
   for( unsigned int i = 1 ; i < pins.size() - 1 ; ++i )
@@ -79,7 +73,7 @@ vector<Point> sortPins( vector<Point> pins )
      for( unsigned int j = i + 1 ; j < pins.size() ; ++j )
         if( manhattanDistance( source , pins[nextIndex] ) > manhattanDistance( source , pins[j] ) ) nextIndex = j;
 
-     swap( pins[i] , pins[nextIndex] );
+     std::swap( pins[i] , pins[nextIndex] );
   }
   return pins;
 }
@@ -145,7 +139,7 @@ void Router::route()
 
     for( const RoutingRegion *region : getRegions( graph ) )
     {
-       cout << region->name() << endl;
+       std::cout << region->name() << std::endl;
 
        for( int layer = 0 ; layer <= maxLayer ; ++layer )
        {
@@ -155,7 +149,7 @@ void Router::route()
           {
              if( !region->netConnected( net ) ) continue;
 
-             cout << net.name() << endl;
+             std::cout << net.name() << std::endl;
              mRouter->setPins( sortPins( movePins( region->connectedPin( net ) , region , net ) ) );
              if( !mRouter->route() ) goto nextLayer;
              if( netRouted( net , region ) ) continue;
@@ -174,8 +168,8 @@ void Router::route()
 
 void Router::outputData( const string &fileName ) const
 {
-  ofstream file( fileName );
-  
+  std::ofstream file( fileName );
+
   file << graph;
 }
 // end Router public member functions
@@ -183,6 +177,8 @@ void Router::outputData( const string &fileName ) const
 // Router private member functions
 void Router::readGroup( const string &fileName )
 {
+  using namespace std;
+
   ifstream          file( fileName );
   string            buffer;
   vector<Symmetry>  symmetrys;
@@ -230,6 +226,8 @@ void Router::readGroup( const string &fileName )
 
 void Router::readBlock( const string &fileName )
 {
+  using namespace std;
+
   const regex pattern{ R"(([[:d:]]+) ([[:d:]]+) ([[:d:]]+) ([[:d:]]+) ([[:alnum:]]+).*)" };
 
   ifstream  file( fileName );
@@ -281,6 +279,8 @@ void Router::readBlock( const string &fileName )
 
 void Router::readNets( const string &fileName )
 {
+  using namespace std;
+
   const regex header{ R"(NetDegree[[:s:]]+:[[:s:]]+([[:d:]]+)[[:s:]]+([[:alnum:]!]+)[[:s:]]+([[:d:]]+).*)" };
   const regex data  { R"([[:s:]]*([[:alnum:]]+)[[:s:]]+O :[[:s:]]+([-[:d:]]+)[[:s:]]+([-[:d:]]+).*)" };
 
@@ -327,5 +327,4 @@ void Router::initRouter( const RoutingRegion *region , int maxLayer )
   mRouter->setGridMap ( region->gridMap( 1 + maxLayer ) );
   mRouter->setGridMax ( region->maxGridWidth() , region->maxGridHeight() );
 }
-
 // end Router private member functions

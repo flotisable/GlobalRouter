@@ -14,11 +14,11 @@ class Router
 {
   public:
 
-    // for exception
+    // exception classes
     class FileOpenError;
     class RoutingEngineError;
     class NetCannotRoute {};
-    // end for exception
+    // end exception classes
 
     using RoutingEngine = MazeRouter;
 
@@ -44,7 +44,6 @@ class Router
     void initRouter( const RoutingRegion *region , int maxLayer );
 
     RoutingEngine *mRouter;
-
     RoutingGraph  graph;
     int           maxLayer{};
 };
