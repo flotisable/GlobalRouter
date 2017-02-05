@@ -12,6 +12,123 @@ using namespace std;
 
 #include "Component/Block.h"
 
+// Router non-member functions
+vector<const RoutingRegion*> getRegions( const RoutingGraph &graph )
+{
+  vector<const RoutingRegion*> regions;
+
+  for( const Group &group : graph.groups() ) regions.push_back( &group );
+  regions.push_back( &graph );
+
+  return regions;
+}
+
+vector<Point> movePins( vector<Point> pins , const RoutingRegion *region , const Net &net )
+{
+  auto compare = []( const Point &front , const Point &back ) { return ( front.x() < back.x() ); };
+
+  map<Point,Pin,decltype( compare )> table( compare );
+
+  for( const Pin &pin : net.pins() ) table[region->map( pin.x() , pin.y() )] = pin;
+
+  for( Point &p : pins )
+  {
+     const Point  lb = region->map( table[p].connect()->leftBottom() );
+     Point        rt = region->map( table[p].connect()->rightTop  () );
+
+     rt.set( rt.x() - 1 , rt.y() - 1 );
+
+     if(  lb.x() < p.x() && p.x() < rt.x() &&
+          lb.y() < p.y() && p.y() < rt.y() )
+     {
+       double y = ( p.y() - lb.y() > rt.y() - p.y() ) ? rt.y() : lb.y();
+
+       if       ( y == region->bottom () ) y = rt.y();
+       else if  ( y == region->top    () ) y = lb.y();
+
+       p.setY( y );
+     }
+  }
+  return pins;
+}
+
+vector<Point> sortPins( vector<Point> pins )
+{
+  if( pins.size() <= 2 ) return pins;
+
+  vector<double> cost( pins.size() , 0 );
+
+  // find first pin to be route
+  for( unsigned int i = 0 ; i < pins.size() ; ++i )
+     for( const Point &target : pins )
+        cost[i] += manhattanDistance( pins[i] , target );
+
+  int firstIndex = 0;
+
+  for( unsigned int i = 1 ; i < cost.size() ; ++i )
+     if( cost[i] < cost[firstIndex] ) firstIndex = i;
+
+  swap( pins[0] , pins[firstIndex] );
+  // end find first pin to be route
+
+  for( unsigned int i = 1 ; i < pins.size() - 1 ; ++i )
+  {
+     const Point  &source   = pins[i-1];
+     int          nextIndex = i;
+
+     for( unsigned int j = i + 1 ; j < pins.size() ; ++j )
+        if( manhattanDistance( source , pins[nextIndex] ) > manhattanDistance( source , pins[j] ) ) nextIndex = j;
+
+     swap( pins[i] , pins[nextIndex] );
+  }
+  return pins;
+}
+
+bool netRouted( const Net &net , const RoutingRegion *region )
+{
+  for( const Path &path : net.paths() )
+     if( path.belongRegion() == region ) return true;
+  return false;
+}
+
+void saveNet( Net &net , const RoutingRegion *region , const vector<Path> &paths )
+{
+  for( const Path &path : paths )
+  {
+     if( path.path().empty() ) continue;
+     if( path.layer() == 0 )
+     {
+       vector<Point>  pins  { region->connectedPin( net ) };
+       int            index { 0 };
+
+       for( const Point &p : movePins( pins , region , net ) )
+       {
+          vector<Point> &pathT{ const_cast<vector<Point>&>( path.path() ) };
+          auto          it    { find( pathT.begin() , pathT.end() , p )   };
+
+          if      ( it      == pathT.end  () ) continue;
+          else if ( it + 1  == pathT.end  () ) ++it;
+          else if ( it      != pathT.begin() )
+          {
+            pathT.insert( it , *it );
+            it = find( pathT.begin() , pathT.end() , p );
+            ++it;
+          }
+          pathT.insert( it , pins[index++] );
+
+          it = unique( pathT.begin() , pathT.end() );
+          pathT.resize( distance( pathT.begin() , it ) );
+          pathT.shrink_to_fit();
+       }
+     }
+     net.paths().push_back( std::move( path ) );
+  }
+
+  for( Path &path : net.paths() )
+     if( !path.belongRegion() ) path.setBelongRegion( region );
+}
+// end Router non-member functions
+
 // Router public member functions
 void Router::read( const string &groupFileName , const string &blockFileName , const string &netFileName )
 {
@@ -26,7 +143,7 @@ void Router::route()
   {
     if( graph.vsplit().size() == 0 || graph.hsplit().size() == 0 ) return;
 
-    for( RoutingRegion *region : getRegions() )
+    for( const RoutingRegion *region : getRegions( graph ) )
     {
        cout << region->name() << endl;
 
@@ -42,7 +159,7 @@ void Router::route()
              mRouter->setPins( sortPins( movePins( region->connectedPin( net ) , region , net ) ) );
              if( !mRouter->route() ) goto nextLayer;
              if( netRouted( net , region ) ) continue;
-             saveNet( net , region );
+             saveNet( net , region , mRouter->paths() );
           }
           break;
           nextLayer: if( layer >= maxLayer ) throw NetCannotRoute();
@@ -204,128 +321,11 @@ void Router::readNets( const string &fileName )
   }
 }
 
-vector<RoutingRegion*> Router::getRegions()
-{
-  vector<RoutingRegion*> regions;
-
-  for( Group &group : graph.groups() ) regions.push_back( &group );
-  regions.push_back( &graph );
-
-  return regions;
-}
-
-void Router::initRouter( const RoutingRegion *region, int maxLayer )
+void Router::initRouter( const RoutingRegion *region , int maxLayer )
 {
   mRouter->setMaxLayer( maxLayer );
   mRouter->setGridMap ( region->gridMap( 1 + maxLayer ) );
   mRouter->setGridMax ( region->maxGridWidth() , region->maxGridHeight() );
 }
 
-vector<Point> Router::movePins( vector<Point> pins , const RoutingRegion *region , const Net &net )
-{
-  auto compare = []( const Point &front , const Point &back ) { return ( front.x() < back.x() ); };
-
-  map<Point,Pin,decltype( compare )> table( compare );
-
-  for( const Pin &pin : net.pins() ) table[region->map( pin.x() , pin.y() )] = pin;
-
-  for( Point &p : pins )
-  {
-     const Point lb = region->map( table[p].connect()->leftBottom() );
-     Point rt = region->map( table[p].connect()->rightTop  () );
-
-     rt = Point{ rt.x() - 1 , rt.y() - 1 };
-
-     if(  lb.x() < p.x() && p.x() < rt.x() &&
-          lb.y() < p.y() && p.y() < rt.y() )
-     {
-       double y = ( p.y() - lb.y() > rt.y() - p.y() ) ? rt.y() : lb.y();
-
-       if       ( y == region->bottom () ) y = rt.y();
-       else if  ( y == region->top    () ) y = lb.y();
-
-       p.setY( y );
-     }
-  }
-  return pins;
-}
-
-vector<Point> Router::sortPins( vector<Point> pins )
-{
-  if( pins.size() <= 2 ) return pins;
-
-  vector<double> cost( pins.size() , 0 );
-
-  // find first pin to be route
-  for( unsigned int i = 0 ; i < pins.size() ; ++i )
-  {
-     const Point &pin = pins[i];
-
-     for( const Point &target : pins )
-     {
-        if( pin == target ) continue;
-        cost[i] += manhattanDistance( pin , target );
-     }
-  }
-
-  int firstIndex = 0;
-
-  for( unsigned int i = 1 ; i < cost.size() ; ++i )
-     if( cost[i] < cost[firstIndex] ) firstIndex = i;
-
-  swap( pins[0] , pins[firstIndex] );
-  // end find first pin to be route
-
-  for( unsigned int i = 1 ; i < pins.size() - 1 ; ++i )
-  {
-     const Point  &source   = pins[i-1];
-     int          nextIndex = i;
-
-     for( unsigned int j = i + 1 ; j < pins.size() ; ++j )
-        if( manhattanDistance( source , pins[nextIndex] ) > manhattanDistance( source , pins[j] ) ) nextIndex = j;
-
-     swap( pins[i] , pins[nextIndex] );
-  }
-  return pins;
-}
-
-bool Router::netRouted( const Net &net , const RoutingRegion *region )
-{
-  for( const Path &path : net.paths() )
-     if( path.belongRegion() == region ) return true;
-  return false;
-}
-
-void Router::saveNet( Net &net , RoutingRegion *region )
-{
-  for( const Path &path : mRouter->paths() )
-     if( !path.path().empty() )
-     {
-       if( path.layer() == 0 )
-       {
-         for( const Point &p : movePins( region->connectedPin( net ) , region , net ) )
-         {
-//            const Point   p       = region->map( pin.x() , pin.y() );
-            vector<Point> &pathT  = const_cast<vector<Point>&>( path.path() );
-
-            auto it = find( pathT.begin() , pathT.end() , p );
-
-            if      ( it      == pathT.end  () ) continue;
-            else if ( it + 1  == pathT.end  () ) ++it;
-            else if ( it      != pathT.begin() )
-            {
-              pathT.insert( it , *it );
-              it = find( pathT.begin() , pathT.end() , p );
-              ++it;
-            }
-
-            pathT.insert( it , p );
-         }
-       }
-       net.paths().push_back( std::move( path ) );
-     }
-
-  for( Path &path : net.paths() )
-     if( !path.belongRegion() ) path.setBelongRegion( region );
-}
 // end Router private member functions

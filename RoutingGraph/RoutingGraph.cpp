@@ -159,7 +159,7 @@ std::istream& operator>>( std::istream &in  , RoutingGraph &graph )
         }
         for( Path &path : net.paths() )
         {
-           RoutingRegion *region = path.belongRegion();
+           const RoutingRegion *region = path.belongRegion();
 
            path.setBelongRegion( graph.getRegion( region->name() ) );
            delete region;

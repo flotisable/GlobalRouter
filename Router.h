@@ -41,12 +41,7 @@ class Router
     void readBlock( const string &fileName );
     void readNets ( const string &fileName );
 
-    vector<RoutingRegion*>  getRegions();
-    void                    initRouter( const RoutingRegion *region , int maxLayer );
-    vector<Point>           movePins  ( vector<Point> pins , const RoutingRegion *region , const Net &net );
-    vector<Point>           sortPins  ( vector<Point> pins );
-    bool                    netRouted ( const Net &net , const RoutingRegion *region );
-    void                    saveNet   ( Net &net , RoutingRegion *region );
+    void initRouter( const RoutingRegion *region , int maxLayer );
 
     RoutingEngine *mRouter;
 
@@ -54,7 +49,7 @@ class Router
     int           maxLayer{};
 };
 
-// for exceptions
+// exception classes
 class Router::FileOpenError : public std::runtime_error
 {
   public:
@@ -76,7 +71,15 @@ class Router::RoutingEngineError
     const string engine;
     const string error;
 };
-// end for exceptions
+// end exception classes
+
+// Router non-member functions
+vector<const RoutingRegion*>  getRegions( const RoutingGraph &graph );
+vector<Point>                 movePins  ( vector<Point> pins , const RoutingRegion *region , const Net &net );
+vector<Point>                 sortPins  ( vector<Point> pins );
+bool                          netRouted ( const Net &net , const RoutingRegion *region );
+void                          saveNet   ( Net &net , RoutingRegion *region , vector<Path> &paths );
+// end Router non-member functions
 
 // Router public inline member functions
 inline Router::Router( RoutingEngine* router ) : mRouter{ router } {}
