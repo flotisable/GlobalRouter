@@ -1,15 +1,14 @@
 #include "MazeRouter.h"
 
 #include <queue>
-#include <climits>
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-#include <cfloat>
-using namespace std;
+#include <limits>
 
 const Point MazeRouter::nullPoint = Point( -1 , -1 );
 
+// MazeRouter public member functions
 bool MazeRouter::route()
 {
   Point source = pins.front();
@@ -18,7 +17,7 @@ bool MazeRouter::route()
 
   for( const Point &target : pins )
   {
-     cout << target << endl;
+     std::cout << target << std::endl;
 
      if( source == target ) continue;
 
@@ -28,22 +27,69 @@ bool MazeRouter::route()
      if( findPath( source , target ) )
      {
        for( const Path &path : backTrace( source , target ) )
-       {
-          if( path.path().empty() ) continue;
-          insertPath( path );
-       }
+          if( !path.path().empty() ) insertPath( path );
      }
      else return false;
 
      ++tag;
      source = target;
   }
-  uniquePaths();
-  cout << endl;
+  uniquePaths( mPaths );
+  std::cout << std::endl;
   return true;
 }
+// end MazeRouter public member functions
 
+// MazeRouter non-member functions
+void uniquePaths( vector<Path> &paths )
+{
+  for( Path &pathT : paths )
+  {
+    vector<Point> &path = pathT.path();
 
+    path.resize( distance( path.begin() , unique( path.begin() , path.end() ) ) );
+  }
+}
+
+MazeRouter::Direct getDirect( const Point &p, const Point &movedP )
+{
+  if      ( p.x() < movedP.x() )  return MazeRouter::right;
+  else if ( p.x() > movedP.x() )  return MazeRouter::left;
+  else if ( p.y() < movedP.y() )  return MazeRouter::up;
+  else if ( p.y() > movedP.y() )  return MazeRouter::down;
+  else                            return MazeRouter::unknown;
+}
+
+void output( const Point &source, const Point &target , const GridMap &map )
+{
+  using namespace std;
+
+  auto precision  = cout.precision();
+  int  tag        = map.grid( source.y() , source.x() ).tag();
+
+  cout << source << " -> " << target << endl;
+  for( int i = map.row() - 1 ; i >= 0 ; --i )
+  {
+     // output tag
+     for( const Grid &grid : map.grid( i ) ) cout << ( grid.tag() == tag );
+     cout << " ";
+     // end output tag
+     // output label
+     for( const Grid &grid : map.grid( i ) )
+        cout << setw( 2 ) << ( ( grid.tag() == tag ) ? grid.label() : 0 );
+     cout << " ";
+     // end output label
+     // output cost
+     for( const Grid &grid : map.grid( i ) )
+        cout << setw( precision ) << ( ( grid.tag() == tag ) ? grid.cost() : 0.0 );
+     // end output cost
+     cout << endl;
+  }
+  cout << endl;
+}
+// end MazeRouter non-member functions
+
+// MazeRouter private member functions
 const Block *MazeRouter::getBlock( const Point &point )
 {
   const Block *block = map.grid( point.y() , point.x() ).block();
@@ -53,10 +99,10 @@ const Block *MazeRouter::getBlock( const Point &point )
 
 bool MazeRouter::findPath( const Point &source , const Point &target )
 {
-  int           fanin       = getFanin( target );
-  int           arrivedNum  = 0;
-  int           label       = 1;
-  queue<Point>  box;
+  int               fanin       = getFanin( target );
+  int               arrivedNum  = 0;
+  int               label       = 1;
+  std::queue<Point> box;
 
   if( fanin == 0 )
   {
@@ -111,7 +157,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
   }
   if( arrivedNum > 0 )
   {
-    output( source , target );
+    output( source , target , map );
     return true;
   }
   return false;
@@ -120,7 +166,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
 vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
 {
   Point         p         = target;
-  double        cost      = DBL_MAX;
+  double        cost      = std::numeric_limits<double>::max();
   int           label     = map.grid( target.y() , target.x() ).label();
   int           layer     = 0;
   Direct        direction = unknown;
@@ -183,7 +229,7 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
   }
   path[layer].path().push_back( source );
 
-  cout << "trace success\n";
+  std::cout << "trace success\n";
   return path;
 }
 
@@ -193,18 +239,8 @@ void MazeRouter::insertPath( const Path &path )
                       [&]( const Path &p ) { return ( p.layer() == path.layer() ); } );
 
   if( it == mPaths.end() )  mPaths.push_back( path );
-  else                      it->path().insert(  it->path().begin() ,
+  else                      it->path().insert(  it->path().end() ,
                                                 path.path().begin() , path.path().end() );
-}
-
-void MazeRouter::uniquePaths()
-{
-  for( Path &pathT : mPaths )
-  {
-    vector<Point> &path = pathT.path();
-
-    path.resize( distance( path.begin() , unique( path.begin() , path.end() ) ) );
-  }
 }
 
 void MazeRouter::initSource( const Point &source )
@@ -220,29 +256,12 @@ Point MazeRouter::move( const Point &point, MazeRouter::Direct direction )
 {
   switch( direction )
   {
-    case up:
-
-      if( point.y() != map.row() - 1 ) return Point( point.x() , point.y() + 1 );
-      break;
-
-    case down:
-
-      if( point.y() != 0 ) return Point( point.x() , point.y() - 1 );
-      break;
-
-    case left:
-
-      if( point.x() != 0 ) return Point( point.x() - 1 , point.y() );
-      break;
-
-    case right:
-
-      if( point.x() != map.col() - 1 ) return Point( point.x() + 1 , point.y() );
-      break;
-
-    default: break;
+    case up:    return ( point.y() != map.row() - 1 ) ? Point{ point.x() , point.y() + 1 } : nullPoint;
+    case down:  return ( point.y() != 0             ) ? Point{ point.x() , point.y() - 1 } : nullPoint;
+    case left:  return ( point.x() != 0             ) ? Point{ point.x() - 1 , point.y() } : nullPoint;
+    case right: return ( point.x() != map.col() - 1 ) ? Point{ point.x() + 1 , point.y() } : nullPoint;
+    default:    return nullPoint;
   }
-  return nullPoint;
 }
 
 int MazeRouter::getFanin( const Point &point )
@@ -270,7 +289,7 @@ double MazeRouter::getCostDiff( const Point &point , int layer ,
                                 MazeRouter::Direct direction )
 {
   const Grid  &grid   = map.grid( point.y() , point.x() );
-  double      maxCost = DBL_MAX;
+  double      maxCost;
 
   if      ( direction == up   || direction == down  ) maxCost = gridMax.x();
   else if ( direction == left || direction == right ) maxCost = gridMax.y();
@@ -279,7 +298,7 @@ double MazeRouter::getCostDiff( const Point &point , int layer ,
   double costDiff = grid.edge( static_cast<Grid::Direct>( direction ) )->cost( layer );
 
   if( costDiff + wireWidthMin >= maxCost ) return nullCostDiff;
-  return costDiff + abs( grid.layer() - layer ) * max( gridMax.x() , gridMax.y() );
+  return costDiff + abs( grid.layer() - layer ) * std::max( gridMax.x() , gridMax.y() );
 }
 
 bool MazeRouter::setGridInfo( const Point &point, int label, double cost,
@@ -297,7 +316,7 @@ bool MazeRouter::setGridInfo( const Point &point, int label, double cost,
     default:    return false;
   }
 
-  if( grid.tag() != tag )
+  if( grid.tag() != tag || cost < grid.cost() )
   {
     grid.setTag  ( tag );
     grid.setLabel( label );
@@ -306,43 +325,6 @@ bool MazeRouter::setGridInfo( const Point &point, int label, double cost,
     grid.edge( direct )->setLayer( layer );
     return true;
   }
-  else if( cost < grid.cost() )
-  {
-    grid.setLabel( label );
-    grid.setLayer( layer );
-    grid.setCost ( cost );
-    grid.edge( direct )->setLayer( layer );
-    return true;
-  }
   return false;
 }
-
-MazeRouter::Direct MazeRouter::getDirect( const Point &p, const Point &movedP )
-{
-  if      ( p.x() < movedP.x() )  return right;
-  else if ( p.x() > movedP.x() )  return left;
-  else if ( p.y() < movedP.y() )  return up;
-  else if ( p.y() > movedP.y() )  return down;
-  else                            return unknown;
-}
-
-void MazeRouter::output( const Point &source, const Point &target )
-{
-  auto precision  = cout.precision();
-  int  tag        = map.grid( source.y() , source.x() ).tag();
-
-  cout << source << " -> " << target << endl;
-  for( int i = map.row() - 1 ; i >= 0 ; --i )
-  {
-     for( const Grid &grid : map.grid( i ) ) cout << ( grid.tag() == tag );
-     cout << " ";
-     for( const Grid &grid : map.grid( i ) )
-        cout << setw( 2 ) << ( ( grid.tag() == tag ) ? grid.label() : 0 );
-     cout << " ";
-     for( const Grid &grid : map.grid( i ) )
-        cout << setw( precision ) << ( ( grid.tag() == tag ) ? grid.cost() : 0.0 );
-     cout << " ";
-     cout << endl;
-  }
-  cout << endl;
-}
+// end MazeRouter private member functions

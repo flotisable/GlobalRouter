@@ -18,6 +18,16 @@ class MazeRouter
 
     class BacktraceError{}; // for exception
 
+    enum Direct
+    {
+      unknown = -1,
+      up,
+      down,
+      left,
+      right,
+      directNum
+    };
+
     inline const vector<Path>& paths();
 
     inline void setGridMap  ( const GridMap &map  );
@@ -30,16 +40,6 @@ class MazeRouter
 
   private:
 
-    enum Direct
-    {
-      unknown = -1,
-      up,
-      down,
-      left,
-      right,
-      directNum
-    };
-
     static const Point      nullPoint;
     static constexpr double nullCostDiff  = -1.0;
     const double            wireWidthMin  = 0.46;
@@ -48,7 +48,6 @@ class MazeRouter
     bool          findPath    ( const Point &source , const Point &target );
     vector<Path>  backTrace   ( const Point &source , const Point &target );
     void          insertPath  ( const Path  &path );
-    void          uniquePaths ();
 
     void    initSource  ( const Point &source );
     Point   move        ( const Point &point , Direct direction );
@@ -57,9 +56,6 @@ class MazeRouter
     double  getCostDiff ( const Point &point , int layer , Direct direction );
     bool    setGridInfo ( const Point &point , int label , double cost ,
                           Direct direction , int layer );
-    Direct  getDirect   ( const Point &p , const Point &movedP );
-
-    void output( const Point &source , const Point &target );
 
     const Block *sourceBlock  { nullptr };
     const Block *targetBlock  { nullptr };
@@ -73,6 +69,13 @@ class MazeRouter
     vector<Path>  mPaths;
 };
 
+// MazeRouter non-member functions
+void                uniquePaths ( vector<Path> &paths );
+MazeRouter::Direct  getDirect   ( const Point &p      , const Point &movedP );
+void                output      ( const Point &source , const Point &target , const GridMap &map );
+// end MazeRouter non-member functions
+
+// MazeRouter inline member functions
 inline const vector<Path>& MazeRouter::paths() { return mPaths; }
 
 inline void MazeRouter::setGridMap  ( const GridMap &map )          { this->map   = map ;  }
@@ -82,5 +85,6 @@ inline void MazeRouter::setPins     ( const vector<Point> &pins  )  { this->pins
 inline void MazeRouter::setGridMax  ( double x , double y )
 { gridMax = Point( x , y ); }
 inline void MazeRouter::setMaxLayer ( int maxLayer ) { this->maxLayer = maxLayer; }
+// end MazeRouter inline member functions
 
 #endif
