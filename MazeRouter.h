@@ -16,6 +16,8 @@ class MazeRouter
 {
   public:
 
+    using CostType = Grid::CostType;
+
     class BacktraceError{}; // for exception
 
     enum class Direct : char
@@ -51,13 +53,13 @@ class MazeRouter
     vector<Path>  backTrace   ( const Point &source , const Point &target );
     void          insertPath  ( const Path  &path );
 
-    void    initSource  ( const Point &source );
-    Point   move        ( const Point &point , Direct direction );
-    int     getFanin    ( const Point &point );
-    bool    gridBlocked ( const Point &point );
-    double  getCostDiff ( const Point &point , int layer , Direct direction );
-    bool    setGridInfo ( const Point &point , int label , double cost ,
-                          Direct direction , int layer );
+    void      initSource  ( const Point &source );
+    Point     move        ( const Point &point , Direct direction );
+    int       getFanin    ( const Point &point );
+    bool      gridBlocked ( const Point &point );
+    CostType  getCostDiff ( const Point &point , int layer , Direct direction );
+    bool      setGridInfo ( const Point &point , int label , double cost ,
+                            Direct direction , int layer );
 
     const Block *sourceBlock  { nullptr };
     const Block *targetBlock  { nullptr };

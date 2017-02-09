@@ -136,25 +136,25 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
     {
        const Point &p = box.front();
 
+       if( p == target )
+       {
+         ++arrivedNum;
+         continue;
+       }
+
        for( Direct direct = Direct::init ; direct != Direct::final ; ++direct )
        {
-          if( p == target )
-          {
-            ++arrivedNum;
-            continue;
-          }
+          Point     pMoved = move( p , direct );
+          CostType  cost   = map.grid( p.y() , p.x() ).cost();
 
-          Point  pMoved = move( p , direct );
-          double cost   = map.grid( p.y() , p.x() ).cost();
-
-          if( ( pMoved == nullPoint || gridBlocked( pMoved ) ) && pMoved != target ) continue;
+          if( pMoved == nullPoint || gridBlocked( pMoved ) && pMoved != target ) continue;
 
           // select layer
           int layer = 0;
 
           for( ; layer <= maxLayer ; ++layer )
           {
-             double costDiff = getCostDiff( p , layer , direct );
+             CostType costDiff = getCostDiff( p , layer , direct );
 
              if( costDiff == nullCostDiff ) continue;
 
@@ -164,8 +164,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
           if( layer > maxLayer ) continue;
           // end select layer
 
-          if( setGridInfo( pMoved , label , cost , direct , layer ) )
-            box.push( pMoved );
+          if( setGridInfo( pMoved , label , cost , direct , layer ) ) box.push( pMoved );
       }
     }
     ++label;
