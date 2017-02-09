@@ -53,11 +53,11 @@ void uniquePaths( vector<Path> &paths )
 
 MazeRouter::Direct getDirect( const Point &p, const Point &movedP )
 {
-  if      ( p.x() < movedP.x() )  return MazeRouter::right;
-  else if ( p.x() > movedP.x() )  return MazeRouter::left;
-  else if ( p.y() < movedP.y() )  return MazeRouter::up;
-  else if ( p.y() > movedP.y() )  return MazeRouter::down;
-  else                            return MazeRouter::unknown;
+  if      ( p.x() < movedP.x() )  return MazeRouter::Direct::right;
+  else if ( p.x() > movedP.x() )  return MazeRouter::Direct::left;
+  else if ( p.y() < movedP.y() )  return MazeRouter::Direct::up;
+  else if ( p.y() > movedP.y() )  return MazeRouter::Direct::down;
+  else                            return MazeRouter::Direct::unknown;
 }
 
 void output( const Point &source, const Point &target , const GridMap &map )
@@ -86,6 +86,21 @@ void output( const Point &source, const Point &target , const GridMap &map )
      cout << endl;
   }
   cout << endl;
+}
+
+MazeRouter::Direct& operator++( MazeRouter::Direct &direct )
+{
+  switch( direct )
+  {
+    case MazeRouter::Direct::up:
+    case MazeRouter::Direct::down:
+    case MazeRouter::Direct::left:
+    case MazeRouter::Direct::right:
+
+      return direct = static_cast<MazeRouter::Direct>( static_cast<int>( direct ) + 1 );
+
+    default: return direct = MazeRouter::Direct::unknown;
+  }
 }
 // end MazeRouter non-member functions
 
@@ -121,7 +136,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
     {
        const Point &p = box.front();
 
-       for( int direct = 0 ; direct < directNum ; ++direct )
+       for( Direct direct = Direct::init ; direct != Direct::final ; ++direct )
        {
           if( p == target )
           {
@@ -129,7 +144,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
             continue;
           }
 
-          Point  pMoved = move( p , static_cast<Direct>( direct ) );
+          Point  pMoved = move( p , direct );
           double cost   = map.grid( p.y() , p.x() ).cost();
 
           if( ( pMoved == nullPoint || gridBlocked( pMoved ) ) && pMoved != target ) continue;
@@ -139,7 +154,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
 
           for( ; layer <= maxLayer ; ++layer )
           {
-             double costDiff = getCostDiff( p , layer , static_cast<Direct>( direct ) );
+             double costDiff = getCostDiff( p , layer , direct );
 
              if( costDiff == nullCostDiff ) continue;
 
@@ -149,7 +164,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
           if( layer > maxLayer ) continue;
           // end select layer
 
-          if( setGridInfo( pMoved , label , cost , static_cast<Direct>( direct ) , layer ) )
+          if( setGridInfo( pMoved , label , cost , direct , layer ) )
             box.push( pMoved );
       }
     }
@@ -169,7 +184,7 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
   double        cost      = std::numeric_limits<double>::max();
   int           label     = map.grid( target.y() , target.x() ).label();
   int           layer     = 0;
-  Direct        direction = unknown;
+  Direct        direction = Direct::unknown;
   vector<Path>  path( 1 );
 
   path[0].path().push_back( target );
@@ -179,9 +194,9 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
     Point pNext;
 
     // move
-    for( int direct = 0 ; direct < directNum ; ++direct )
+    for( Direct direct = Direct::init ; direct != Direct::final ; ++direct )
     {
-       Point pT = move( p , static_cast<Direct>( direct ) );
+       Point pT = move( p , direct );
 
        if( pT == nullPoint || move( pT , direction ) == p ) continue;
 
@@ -189,7 +204,7 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
        int  layer = map.grid( p.y() , p.x() )
                     .edge( static_cast<Grid::Direct>( direct ) )->layer();
 
-       double costDiff = getCostDiff( p , layer , static_cast<Direct>( direct ) );
+       double costDiff = getCostDiff( p , layer , direct );
 
        if( costDiff == nullCostDiff ) continue;
 
@@ -203,7 +218,7 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
 
     // set direction
     direction = getDirect( p , pNext );
-    if( direction == unknown ) throw BacktraceError();
+    if( direction == Direct::unknown ) throw BacktraceError();
 
     const Point &pPrevious = path[layer].path().back();
 
@@ -256,11 +271,11 @@ Point MazeRouter::move( const Point &point, MazeRouter::Direct direction )
 {
   switch( direction )
   {
-    case up:    return ( point.y() != map.row() - 1 ) ? Point{ point.x() , point.y() + 1 } : nullPoint;
-    case down:  return ( point.y() != 0             ) ? Point{ point.x() , point.y() - 1 } : nullPoint;
-    case left:  return ( point.x() != 0             ) ? Point{ point.x() - 1 , point.y() } : nullPoint;
-    case right: return ( point.x() != map.col() - 1 ) ? Point{ point.x() + 1 , point.y() } : nullPoint;
-    default:    return nullPoint;
+    case Direct::up:    return ( point.y() != map.row() - 1 ) ? Point{ point.x() , point.y() + 1 } : nullPoint;
+    case Direct::down:  return ( point.y() != 0             ) ? Point{ point.x() , point.y() - 1 } : nullPoint;
+    case Direct::left:  return ( point.x() != 0             ) ? Point{ point.x() - 1 , point.y() } : nullPoint;
+    case Direct::right: return ( point.x() != map.col() - 1 ) ? Point{ point.x() + 1 , point.y() } : nullPoint;
+    default:            return nullPoint;
   }
 }
 
@@ -268,9 +283,9 @@ int MazeRouter::getFanin( const Point &point )
 {
   int fanin{};
 
-  for( int direct = 0 ; direct < directNum ; ++direct )
+  for( Direct direct = Direct::init ; direct != Direct::final ; ++direct )
   {
-     Point p = move( point , static_cast<Direct>( direct ) );
+     Point p = move( point , direct );
 
      if( p != nullPoint && !gridBlocked( p ) ) ++fanin;
   }
@@ -291,9 +306,9 @@ double MazeRouter::getCostDiff( const Point &point , int layer ,
   const Grid  &grid   = map.grid( point.y() , point.x() );
   double      maxCost;
 
-  if      ( direction == up   || direction == down  ) maxCost = gridMax.x();
-  else if ( direction == left || direction == right ) maxCost = gridMax.y();
-  else                                                return nullCostDiff;
+  if      ( direction == Direct::up   || direction == Direct::down  ) maxCost = gridMax.x();
+  else if ( direction == Direct::left || direction == Direct::right ) maxCost = gridMax.y();
+  else                                                                return nullCostDiff;
 
   double costDiff = grid.edge( static_cast<Grid::Direct>( direction ) )->cost( layer );
 
@@ -309,11 +324,11 @@ bool MazeRouter::setGridInfo( const Point &point, int label, double cost,
 
   switch( direction )
   {
-    case up:    direct = Grid::bottom;  break;
-    case down:  direct = Grid::top;     break;
-    case left:  direct = Grid::right;   break;
-    case right: direct = Grid::left;    break;
-    default:    return false;
+    case Direct::up:    direct = Grid::bottom;  break;
+    case Direct::down:  direct = Grid::top;     break;
+    case Direct::left:  direct = Grid::right;   break;
+    case Direct::right: direct = Grid::left;    break;
+    default:            return false;
   }
 
   if( grid.tag() != tag || cost < grid.cost() )

@@ -18,14 +18,16 @@ class MazeRouter
 
     class BacktraceError{}; // for exception
 
-    enum Direct
+    enum class Direct : char
     {
-      unknown = -1,
-      up,
+      unknown   = -1,
+      init,
+      up        = init,
       down,
       left,
       right,
-      directNum
+      final,
+      directNum = final
     };
 
     inline const vector<Path>& paths();
@@ -73,6 +75,8 @@ class MazeRouter
 void                uniquePaths ( vector<Path> &paths );
 MazeRouter::Direct  getDirect   ( const Point &p      , const Point &movedP );
 void                output      ( const Point &source , const Point &target , const GridMap &map );
+
+MazeRouter::Direct& operator++( MazeRouter::Direct &direct );
 // end MazeRouter non-member functions
 
 // MazeRouter inline member functions
