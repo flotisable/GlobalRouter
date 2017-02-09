@@ -49,6 +49,10 @@ int main()
   {
     cerr << "RoutingEngineError : " << error.engineName() << "::" << error.errorName() << endl;
   }
+  catch( const invalid_argument &error )
+  {
+    cerr << "invalid argument : " << error.what() << endl;
+  }
 
   cin.get();
   return 0;
