@@ -180,7 +180,7 @@ bool MazeRouter::findPath( const Point &source , const Point &target )
 vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
 {
   Point         p         = target;
-  double        cost      = std::numeric_limits<double>::max();
+  CostType      cost      = std::numeric_limits<double>::max();
   int           label     = map.grid( target.y() , target.x() ).label();
   int           layer     = 0;
   Direct        direction = Direct::unknown;
@@ -199,13 +199,10 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
 
        if( pT == nullPoint || move( pT , direction ) == p ) continue;
 
-       Grid &grid = map.grid( pT.y() , pT.x() );
-       int  layer = map.grid( p.y() , p.x() )
-                    .edge( static_cast<Grid::Direct>( direct ) )->layer();
+       Grid       &grid = map.grid( pT.y() , pT.x() );
+       const int  layer = map.grid( p.y() , p.x() ).edge( static_cast<Grid::Direct>( direct ) )->layer();
 
-       double costDiff = getCostDiff( p , layer , direct );
-
-       if( costDiff == nullCostDiff ) continue;
+       if( getCostDiff( p , layer , direct ) == nullCostDiff ) continue;
 
        if( grid.tag() == tag && grid.label() < label && grid.cost() <= cost )
        {
@@ -216,8 +213,7 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
     // end move
 
     // set direction
-    direction = getDirect( p , pNext );
-    if( direction == Direct::unknown ) throw BacktraceError();
+    if( ( direction = getDirect( p , pNext ) ) == Direct::unknown ) throw BacktraceError();
 
     const Point &pPrevious = path[layer].path().back();
 
@@ -235,7 +231,7 @@ vector<Path> MazeRouter::backTrace( const Point &source , const Point &target )
       layer = edge->layer();
 
       for( int i = static_cast<int>( path.size() ) ; i <= layer ; ++i )
-         path.push_back( Path( i ) );
+         path.push_back( Path{ i } );
       path[layer].path().push_back( p );
     }
     p     = pNext;
