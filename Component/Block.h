@@ -5,39 +5,45 @@
 #include <iostream>
 using std::string;
 
-#include "../Graphic/Point.h"
 #include "../Graphic/Rectangle.h"
 
 class Block : public Rectangle
 {
   public:
-  
-    inline Block( const string &name = string() );
-    inline Block( const string &name , double centerX , double centerY , double h , double w );
-    inline Block( const string &name , const Point &center             , double h , double w );
+
+    enum Type
+    {
+      block,
+      region
+    };
+
+    inline explicit Block( const string &name = string() , Type type = block );
     
-    inline const string& name() const;
+    inline const string&  name() const;
+    inline Type           type() const;
     
     inline void setName( const string &name );
-    
+    inline void setType( Type         type  );
+
   private:
-  
-    string mName;
+
+    string  mName;
+    Type    mType;
 };
 
+// Block non-member functions
 std::ostream& operator<<( std::ostream &out , const Block &block );
 std::istream& operator>>( std::istream &in  , Block &block );
+// end Block non-member functions
 
-inline Block::Block(  const string &name ) : mName( name ) {}
-inline Block::Block(  const string &name , double centerX , double centerY ,
-                      double h , double w )
-  : Rectangle( centerX , centerY , h ,w ) , mName( name ) {}
-inline Block::Block(  const string &name , const Point &center ,
-                      double h , double w )
-  : Rectangle( center , h , w ) , mName( name ) {}
+// Block inline member functions
+inline Block::Block( const string &name , Type type ) : mName( name ) , mType( type ) {}
 
-inline const string& Block::name() const { return mName; }
+inline const string&  Block::name() const { return mName; }
+inline Block::Type    Block::type() const { return mType; }
 
-inline void Block::setName( const string &name ) { mName = name; }
+inline void Block::setName( const string  &name ) { mName = name; }
+inline void Block::setType( Type          type  ) { mType = type; }
+// end Block inline member functions
 
 #endif

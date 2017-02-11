@@ -2,32 +2,63 @@
 
 #include <algorithm>
 #include <cassert>
-using namespace std;
+#include <stdexcept>
 
 #include "../Component/Pin.h"
 
+const Point RoutingRegion::nullPoint = Point( -1 , -1 );
+
+// RoutingRegion non-member functions
+int getIndex( const vector<double> &array , double value )
+{
+  for( int i = 0 ; i < static_cast<int>( array.size() ) ; ++i )
+     if( array[i] == value ) return i;
+  return -1;
+}
+
+double maxGridSide( const vector<double> &array )
+{
+  double maxSide = 0;
+
+  for( unsigned int i = 0 ; i < array.size() - 1 ; ++i )
+     maxSide = std::max( maxSide , array[i+1] - array[i] );
+
+  return maxSide;
+}
+
+int mapArray( const vector<double>& array , double value )
+{
+  for( unsigned int i = 0 ; i < array.size() ; ++i )
+     if( array[i] > value ) return --i;
+
+  return -1;
+}
+// end RoutingRegion non-member functions
+
+// RoutingRegion member functions
 GridMap RoutingRegion::gridMap( int layer ) const
 {
   assert( mVsplit.size() > 0 && mHsplit.size() > 0 );
+  if( layer <= 0 ) throw std::invalid_argument( "RoutingRegion gridMap layer <= 0" );
   GridMap map( mVsplit.size() - 1 , mHsplit.size() - 1 , layer );
 
   for( unsigned int i = 0 ; i < mBlocks.size() ; ++i )
   {
-     int xMin = getIndex( mHsplit , mBlocks[i].left  () );
-     int xMax = getIndex( mHsplit , mBlocks[i].right () ) - 1;
-     int yMin = getIndex( mVsplit , mBlocks[i].bottom() );
-     int yMax = getIndex( mVsplit , mBlocks[i].top   () ) - 1;
+     const int xMin = getIndex( mHsplit , mBlocks[i].left  () );
+     const int xMax = getIndex( mHsplit , mBlocks[i].right () ) - 1;
+     const int yMin = getIndex( mVsplit , mBlocks[i].bottom() );
+     const int yMax = getIndex( mVsplit , mBlocks[i].top   () ) - 1;
 
      for( int j = yMin ; j <= yMax ; ++j )
         for( int k = xMin ; k <= xMax ; ++k )
         {
-           map.grid( j , k ).setLabel( Grid::obstacle );
+           map.grid( j , k ).setValue( Grid::obstacle );
            map.grid( j , k ).setBlock( &mBlocks[i] );
         }
   }
 
-  double maxH = maxGridWidth();
-  double maxV = maxGridHeight();
+  const double maxH = maxGridWidth();
+  const double maxV = maxGridHeight();
 
   for( int i = 0 ; i < map.row() ; ++i )
      for( int j = 0 ; j < map.col() ; ++j )
@@ -49,7 +80,6 @@ GridMap RoutingRegion::gridMap( int layer ) const
              grid.edge( Grid::right  )->setCost( maxV - vSpace , k );
         }
      }
-
   return map;
 }
 
@@ -63,24 +93,7 @@ vector<Point> RoutingRegion::connectedPin( const Net &net ) const
 
      if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
           ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
-     {
-       unsigned int x;
-       unsigned int y;
-
-       for( x = 0 ; x < mHsplit.size() ; ++x )
-          if( mHsplit[x] >= pin.x() )
-          {
-            --x;
-            break;
-          }
-       for( y = 0 ; y < mVsplit.size() ; ++y )
-          if( mVsplit[y] >= pin.y() )
-          {
-            --y;
-            break;
-          }
-       pins.push_back( Point( x , y ) );
-     }
+       pins.push_back( map( pin ) );
   }
   return pins;
 }
@@ -95,30 +108,48 @@ Block* RoutingRegion::getBlock( const string &name )
 
 const Block* RoutingRegion::getBlock( const string &name ) const
 {
-  for( unsigned int i = 0 ; i < blocks().size() ; ++i )
-     if( blocks()[i].name() == name ) return &blocks()[i];
+  return const_cast<RoutingRegion*>( this )->getBlock( name );
+}
 
-  return NULL;
+void RoutingRegion::buildSplit()
+{
+  using namespace std;
+
+  mHsplit.push_back( left   () );
+  mHsplit.push_back( right  () );
+  mVsplit.push_back( top    () );
+  mVsplit.push_back( bottom () );
+
+  for( unsigned int i = 0 ; i < blocks().size() ; ++i )
+  {
+    const Block &block = blocks()[i];
+
+    mHsplit.push_back( block.left   () );
+    mHsplit.push_back( block.right  () );
+    mVsplit.push_back( block.top    () );
+    mVsplit.push_back( block.bottom () );
+  }
+
+  sort( mHsplit.begin() , mHsplit.end() );
+  sort( mVsplit.begin() , mVsplit.end() );
+
+  vector<double>::iterator it = unique( mHsplit.begin() , mHsplit.end() );
+
+  mHsplit.resize( distance( mHsplit.begin() , it ) );
+
+  it = unique( mVsplit.begin() , mVsplit.end() );
+
+  mVsplit.resize( distance( mVsplit.begin() , it ) );
 }
 
 double RoutingRegion::maxGridWidth() const
 {
-  double maxWidth = 0;
-
-  for( unsigned int i = 0 ; i < hsplit().size() - 1 ; ++i )
-     maxWidth = max( maxWidth , hsplit()[i+1] - hsplit()[i] );
-
-  return maxWidth;
+  return maxGridSide( mHsplit );
 }
 
 double RoutingRegion::maxGridHeight() const
 {
-  double maxHeight = 0;
-
-  for( unsigned int i = 0 ; i < vsplit().size() - 1 ; ++i )
-     maxHeight = max( maxHeight , vsplit()[i+1] - vsplit()[i] );
-
-  return maxHeight;
+  return maxGridSide( mVsplit );
 }
 
 bool RoutingRegion::netConnected( Net &net ) const
@@ -134,10 +165,26 @@ bool RoutingRegion::netConnected( Net &net ) const
   return false;
 }
 
-
-int RoutingRegion::getIndex( const vector<double> &array , double value ) const
+int RoutingRegion::mapX( double x ) const
 {
-  for( int i = 0 ; i < static_cast<int>( array.size() ) ; ++i )
-     if( array[i] == value ) return i;
-  return -1;
+  return mapArray( mHsplit , x );
 }
+
+int RoutingRegion::mapY( double y ) const
+{
+  return mapArray( mVsplit , y );
+}
+
+Point RoutingRegion::map( const Point &point ) const
+{
+  return map( point.x() , point.y() );
+}
+
+Point RoutingRegion::map( double x, double y ) const
+{
+  if( ( mHsplit.front() <= x && x <= mHsplit.back() ) &&
+      ( mVsplit.front() <= y && y <= mVsplit.back() ) )
+    return Point( static_cast<double>( mapX( x ) ) , static_cast<double>( mapY( y ) ) );
+  return nullPoint;
+}
+// end RoutingRegion member functions

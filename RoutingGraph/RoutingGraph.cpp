@@ -1,13 +1,13 @@
 #include "RoutingGraph.h"
 
-#include <algorithm>
-#include <cassert>
 #include <string>
 #include <cstdlib>
-using namespace std;
 
-ostream& operator<<( ostream &out , const RoutingGraph &graph )
+// RoutingGraph non-member functions
+std::ostream& operator<<( std::ostream &out , const RoutingGraph &graph )
 {
+  using std::endl;
+
   out << "[ Graph ]\n";
   out << "Horizontal Split : " << graph.hsplit().size() << endl;
 
@@ -22,20 +22,7 @@ ostream& operator<<( ostream &out , const RoutingGraph &graph )
   out << endl;
 
   out << "Grids :\n";
-
-  GridMap map = graph.gridMap();
-  for( int i = map.row() - 1 ; i >=0 ; --i )
-  {
-     for( int j = 0 ; j < map.col() ; ++j )
-        switch( map.grid( i , j ).label() )
-        {
-          case Grid::space:     out << "0"; break;
-          case Grid::obstacle:  out << "1"; break;
-          default:                          break;
-        }
-     out << endl;
-  }
-  out << endl;
+  outputGridMapValue( out , graph.gridMap() );
 
   out << "Groups : " << graph.groups().size() << endl;
   for( unsigned int i = 0 ; i < graph.groups().size() ; ++i )
@@ -54,19 +41,20 @@ ostream& operator<<( ostream &out , const RoutingGraph &graph )
   return out;
 }
 
-istream& operator>>( istream &in  , RoutingGraph &graph )
+std::istream& operator>>( std::istream &in  , RoutingGraph &graph )
 {
   string word;
 
   graph.setName( "ALL" );
 
+  // read horizontal split
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Horizontal Split : " ) != string::npos )
     {
-      int splitNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
+      const int splitNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
 
       for( int i = 0 ; i < splitNum ; ++i )
       {
@@ -78,14 +66,16 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       break;
     }
   }
+  // end read horizontal split
 
+  // read vertical split
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Vertical Split : " ) != string::npos )
     {
-      int splitNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
+      const int splitNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
 
       for( int i = 0 ; i < splitNum ; ++i )
       {
@@ -97,14 +87,16 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       break;
     }
   }
+  // end read vertical split
 
+  // read groups
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Groups : " ) != string::npos )
     {
-      int groupNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
+      const int groupNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
 
       for( int i = 0 ; !in.eof() && i < groupNum ; )
       {
@@ -119,7 +111,6 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
           group.setName( word.substr( start , end - start ) );
 
           in >> group;
-
           graph.groups().push_back( group );
           ++i;
         }
@@ -127,7 +118,9 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       break;
     }
   }
+  // end read groups
 
+  // read blocks
   while( !in.eof() )
   {
     getline( in , word );
@@ -146,14 +139,16 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       break;
     }
   }
+  // end read blocks
 
+  // read nets
   while( !in.eof() )
   {
     getline( in , word );
 
     if( word.find( "Nets : " ) != string::npos )
     {
-      int netNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
+      const int netNum = atoi( word.substr( word.rfind( ' ' ) + 1 ).data() );
 
       for( int i = 0 ; i < netNum ; ++i )
       {
@@ -170,7 +165,7 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
         }
         for( unsigned int i = 0 ; i < net.paths().size() ; ++i )
         {
-           RoutingRegion *region = net.paths()[i].belongRegion();
+           const RoutingRegion *region = net.paths()[i].belongRegion();
 
            net.paths()[i].setBelongRegion( graph.getRegion( region->name() ) );
            delete region;
@@ -181,25 +176,27 @@ istream& operator>>( istream &in  , RoutingGraph &graph )
       }
     }
   }
+  // end read nets
   return in;
 }
+// end RoutingGraph non-member functions
 
-
+// RoutingGraph member functions
 GridMap RoutingGraph::gridMap( int layer ) const
 {
   GridMap map = RoutingRegion::gridMap( layer );
 
   for( unsigned int i = 0 ; i < groups().size() ; ++i )
   {
-     int xMin = getIndex( mHsplit , groups()[i].left  () );
-     int xMax = getIndex( mHsplit , groups()[i].right () ) - 1;
-     int yMin = getIndex( mVsplit , groups()[i].bottom() );
-     int yMax = getIndex( mVsplit , groups()[i].top   () ) - 1;
+     int xMin = getIndex( hsplit() , groups()[i].left  () );
+     int xMax = getIndex( hsplit() , groups()[i].right () ) - 1;
+     int yMin = getIndex( vsplit() , groups()[i].bottom() );
+     int yMax = getIndex( vsplit() , groups()[i].top   () ) - 1;
      
      for( int j = yMin ; j <= yMax ; ++j )
         for( int k = xMin ; k <= xMax ; ++k )
         {
-           map.grid( j , k ).setLabel ( Grid::obstacle );
+           map.grid( j , k ).setValue ( Grid::obstacle );
            map.grid( j , k ).setBlock ( &groups()[i] );
         }
   }
@@ -208,38 +205,15 @@ GridMap RoutingGraph::gridMap( int layer ) const
 
 void RoutingGraph::buildSplit()
 {
-  mHsplit.push_back( left   () );
-  mHsplit.push_back( right  () );
-  mVsplit.push_back( top    () );
-  mVsplit.push_back( bottom () );
-
   for( unsigned int i = 0 ; i < groups().size() ; ++i )
   {
      groups()[i].buildSplit();
-     mHsplit.push_back( groups()[i].left   () );
-     mHsplit.push_back( groups()[i].right  () );
-     mVsplit.push_back( groups()[i].top    () );
-     mVsplit.push_back( groups()[i].bottom () );
+     hsplit().push_back( groups()[i].left   () );
+     hsplit().push_back( groups()[i].right  () );
+     vsplit().push_back( groups()[i].top    () );
+     vsplit().push_back( groups()[i].bottom () );
   }
-
-  for( unsigned int i = 0 ; i < blocks().size() ; ++i )
-  {
-     mHsplit.push_back( blocks()[i].left   () );
-     mHsplit.push_back( blocks()[i].right  () );
-     mVsplit.push_back( blocks()[i].top    () );
-     mVsplit.push_back( blocks()[i].bottom () );
-  }
-
-  sort( mHsplit.begin() , mHsplit.end() );
-  sort( mVsplit.begin() , mVsplit.end() );
-
-  vector<double>::iterator it = unique( mHsplit.begin() , mHsplit.end() );
-
-  mHsplit.resize( distance( mHsplit.begin() , it ) );
-
-  it = unique( mVsplit.begin() , mVsplit.end() );
-
-  mVsplit.resize( distance( mVsplit.begin() , it ) );
+  RoutingRegion::buildSplit();
 }
 
 vector<Point> RoutingGraph::connectedPin( const Net &net ) const
@@ -251,25 +225,9 @@ vector<Point> RoutingGraph::connectedPin( const Net &net ) const
   {
      const Pin &pin = net.pins()[i];
 
-     if(  ( mHsplit.front() <= pin.x() && pin.x() <= mHsplit.back() ) &&
-          ( mVsplit.front() <= pin.y() && pin.y() <= mVsplit.back() ) )
-     {
-       unsigned int x;
-       unsigned int y;
-
-       for( x = 0 ; x < mHsplit.size() ; ++x )
-          if( mHsplit[x] >= pin.x() )
-          {
-            --x;
-            break;
-          }
-       for( y = 0 ; y < mVsplit.size() ; ++y )
-          if( mVsplit[y] >= pin.y() )
-          {
-            --y;
-            break;
-          }
-       
+     if(  ( hsplit().front() <= pin.x() && pin.x() <= hsplit().back() ) &&
+          ( vsplit().front() <= pin.y() && pin.y() <= vsplit().back() ) )
+     {       
        for( unsigned int i = 0 ; i < this->groups().size() ; ++i )
        {
           const Group &belongGroup = this->groups()[i];
@@ -279,11 +237,10 @@ vector<Point> RoutingGraph::connectedPin( const Net &net ) const
             for( unsigned int i = 0 ; i < groups.size() ; ++i )
                if( groups[i] == &belongGroup ) goto nextPin;
             groups.push_back( &belongGroup );
-            pins.push_back( Point( x , y ) );
-            goto nextPin;
+            break;
           }
        }
-       pins.push_back( Point( x , y ) );
+       pins.push_back( map( pin.x() , pin.y() ) );
      }
      nextPin: continue;
   }
@@ -295,7 +252,7 @@ Block* RoutingGraph::getBlock( const string &name )
   for( unsigned int i = 0 ; i < groups().size() ; ++i )
   {
     Block *block = groups()[i].getBlock( name );
-    
+
     if( block ) return block;
   }
   return RoutingRegion::getBlock( name );
@@ -303,13 +260,7 @@ Block* RoutingGraph::getBlock( const string &name )
 
 const Block* RoutingGraph::getBlock( const string &name ) const
 {
-  for( unsigned int i = 0 ; i < groups().size() ; ++i )
-  {
-    const Block *block = groups()[i].getBlock( name );
-
-    if( block ) return block;
-  }
-  return RoutingRegion::getBlock( name );
+  return const_cast<RoutingGraph*>( this )->getBlock( name );
 }
 
 RoutingRegion* RoutingGraph::getRegion( const string &name )
@@ -324,12 +275,7 @@ RoutingRegion* RoutingGraph::getRegion( const string &name )
 
 const RoutingRegion* RoutingGraph::getRegion( const string &name ) const
 {
-  if( this->name() == name ) return this;
-
-  for( unsigned int i = 0 ; i < groups().size() ; ++i )
-     if( groups()[i].name() == name ) return &groups()[i];
-
-  return NULL;
+  return const_cast<RoutingGraph*>( this )->getRegion( name );
 }
 
 Net* RoutingGraph::getNet( const string &name )
@@ -342,18 +288,15 @@ Net* RoutingGraph::getNet( const string &name )
 
 const Net* RoutingGraph::getNet( const string &name ) const
 {
-  for( unsigned int i = 0 ; i < nets().size() ; ++i )
-     if( nets()[i].name() == name ) return &nets()[i];
-
-  return NULL;
+  return const_cast<RoutingGraph*>( this )->getNet( name );
 }
 
 const Block& RoutingGraph::operator=( const Block &block )
 {
   setName       ( block.name      () );
-  setHeight     ( block.height    () );
-  setWidth      ( block.width     () );
-  setLeftBottom ( block.leftBottom().x() , block.leftBottom().y() );
+  setLeftBottom ( block.leftBottom() );
+  setRightTop   ( block.rightTop  () );
 
   return block;
 }
+// end RoutingGraph member functions

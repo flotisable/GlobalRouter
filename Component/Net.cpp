@@ -1,5 +1,6 @@
 #include "Net.h"
 
+// Net non-member functions
 std::ostream& operator<<( std::ostream &out , const Net &net )
 {
   using std::endl;
@@ -51,3 +52,4 @@ std::istream& operator>>( std::istream &in  , Net &net )
   }
   return in;
 }
+// end Net non-member functions

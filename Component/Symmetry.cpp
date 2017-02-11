@@ -1,8 +1,8 @@
 #include "Symmetry.h"
 
 #include <cstdlib>
-using namespace std;
 
+// Symmetry non-member functions
 std::ostream& operator<<( std::ostream &out , const Symmetry &symmetry )
 {
   using std::endl;
@@ -18,13 +18,11 @@ std::ostream& operator<<( std::ostream &out , const Symmetry &symmetry )
 
 std::istream& operator>>( std::istream &in  , Symmetry &symmetry )
 {
-  using std::getline;
-
   string word;
 
   while( !in.eof() )
   {
-    getline( in , word );
+    std::getline( in , word );
 
     if( word.find( "Blocks : " ) != string::npos )
     {
@@ -42,8 +40,9 @@ std::istream& operator>>( std::istream &in  , Symmetry &symmetry )
   }
   return in;
 }
+// end Symmetry non-member functions
 
-
+// Symmetry member functions
 Block* Symmetry::getBlock( const string &name )
 {
   for( unsigned int i = 0 ; i < blocks().size() ; ++i )
@@ -54,8 +53,6 @@ Block* Symmetry::getBlock( const string &name )
 
 const Block* Symmetry::getBlock( const string &name ) const
 {
-  for( unsigned int i = 0 ; i < blocks().size() ; ++i )
-     if( blocks()[i].name() == name ) return &blocks()[i];
-
-  return NULL;
+  return const_cast<Symmetry*>( this )->getBlock( name );
 }
+// end Symmetry member functions

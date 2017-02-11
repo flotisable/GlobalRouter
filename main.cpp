@@ -1,11 +1,10 @@
 #include <iostream>
-#include <fstream>
 using namespace std;
 
 #include "MazeRouter.h"
 #include "Router.h"
 
-#define FLOTISABLE_LINUX
+#define FLOTISABLE_WIN10
 
 int main()
 {
@@ -13,28 +12,21 @@ int main()
   const string dirPath      = "/home/flotisable/Collage/ProjectImplimentation/";
   const string displayPath  = dirPath + "display_info/";
   const string twoStagePath = dirPath + "TwoStageFullnets/";
-#else
+#endif
 #ifdef FLOTISABLE_WIN10
   const string dirPath      = "f:/flotisable/Program/c++/Collage/TwoStage/";
   const string displayPath  = dirPath + "display_info/";
   const string twoStagePath = dirPath + "two_stage_fullnets/";
-#else
+#endif
 #ifdef COLLAGE_PROJECT_SERVER
   const string dirPath      = "/edahome/102501547/Program/TwoStageFullnets/";
   const string displayPath  = dirPath + "display_info/";
   const string twoStagePath = dirPath;
-#else
+#endif
 #ifdef FLOTISABLE_WIN7
   const string dirPath      = "D:/ProjectImplimentation/";
   const string displayPath  = dirPath + "display_info/";
   const string twoStagePath = dirPath + "two_stage_fullnets/";
-#else
-  const string dirPath      = "";
-  const string displayPath  = dirPath + "";
-  const string twoStagePath = dirPath + "";
-#endif
-#endif
-#endif
 #endif
 
   MazeRouter  routingEngine;
@@ -45,18 +37,26 @@ int main()
 
   try
   {
-    router.readBlock( displayPath + "display0.txt" , twoStagePath + "test.constraints" );
-    router.readNets( twoStagePath + "final.nets" );
-    if( router.route() ) router.outputData( dirPath + "routingReport.txt" );
-    else
-    {
-      cerr << "some nets can't be route!";
-      router.outputData( dirPath + "routingReportError.txt" );
-    }
+    router.read( twoStagePath + "test.constraints" , displayPath + "display0.txt" , twoStagePath + "new_final.nets" );
+    router.route();
+    router.outputData( dirPath + "routingReport.txt" );
   }
-  catch( const FileOpenError &error )
+  catch( const Router::FileOpenError &error )
   {
     cerr << "can not open file : " << error.what() << endl;
+  }
+  catch( const Router::NetCannotRoute &error )
+  {
+    cerr << "some nets can't be route!\n";
+    router.outputData( dirPath + "routingReportError.txt" );
+  }
+  catch( const Router::RoutingEngineError &error )
+  {
+    cerr << "RoutingEngineError : " << error.engineName() << "::" << error.errorName() << endl;
+  }
+  catch( const invalid_argument &error )
+  {
+    cerr << "invalid argument : " << error.what() << endl;
   }
 
   cin.get();

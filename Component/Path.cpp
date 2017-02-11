@@ -1,12 +1,10 @@
 #include "Path.h"
 
-#include "../RoutingGraph/RoutingGraph.h"
-#include "Pin.h"
+#include "../RoutingGraph/RoutingRegion.h"
 
+// Path non-member functions
 std::ostream& operator<<( std::ostream &out , const Path &path )
 {
-  using std::endl;
-  
   out << path.belongRegion()->name() << " " << path.layer() << " "
       << path.path().size() << " ";
   
@@ -18,7 +16,7 @@ std::ostream& operator<<( std::ostream &out , const Path &path )
 
 std::istream& operator>>( std::istream &in  , Path &path )
 {
-  RoutingRegion *region = new RoutingGraph;
+  RoutingRegion *region = new RoutingRegion;
   string        name;
   int           pathLayer;
   int           pathNum;
@@ -26,17 +24,17 @@ std::istream& operator>>( std::istream &in  , Path &path )
   in >> name >> pathLayer >> pathNum;
 
   region->setName( name );
-  
+
   path.setLayer( pathLayer );
   path.setBelongRegion( region );
 
   for( int i = 0 ; i < pathNum ; ++i )
   {
      Point point;
-     
+
      in >> point;
-     
      path.path().push_back( point );
   }
   return in;
 }
+// end Path non-member functions

@@ -20,9 +20,9 @@ std::istream& operator>>( std::istream &in  , Point &point )
   double y;
 
   in >> buffer >> x >> buffer >> y >> buffer;
-  
+
   point.set( x , y );
-  
+
   return in;
 }
 // end Point non-member function
